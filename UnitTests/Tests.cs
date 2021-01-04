@@ -3868,6 +3868,9 @@ there
 
             AssertException(typeof(FormatException), "Input string was not in a correct format.", () => JSON.Parse("{a:..2}"));
             Console.WriteLine(".. is illegal inside of an object");
+
+            Assert.AreEqual(1e41, JSON.Parse("100000000000000000000000000000000000000000"));
+            Console.WriteLine("Parses 100000000000000000000000000000000000000000");
         }
         finally
         {
