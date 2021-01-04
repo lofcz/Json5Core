@@ -46,9 +46,9 @@ namespace fastJSON
         /// </summary>
         public bool EnableAnonymousTypes = false;
         /// <summary>
-        /// Enable fastJSON extensions $types, $type, $map (default = True)
+        /// Enable fastJSON extensions $types, $type, $map (default = False)
         /// </summary>
-        public bool UseExtensions = true;
+        public bool UseExtensions = false;
         /// <summary>
         /// Use escaped unicode i.e. \uXXXX format for non ASCII characters (default = True)
         /// </summary>
@@ -92,10 +92,6 @@ namespace fastJSON
         /// </summary>
         public byte FormatterIndentSpaces = 3;
         /// <summary>
-        /// TESTING - allow non quoted keys in the json like javascript (default = false)
-        /// </summary>
-        public bool AllowNonQuotedKeys = false;
-        /// <summary>
         /// Auto convert string values to numbers when needed (default = true)
         /// 
         /// When disabled you will get an exception if the types don't match
@@ -105,8 +101,6 @@ namespace fastJSON
         /// Override object equality hash code checking (default = false)
         /// </summary>
         public bool OverrideObjectHashCodeChecking = false;
-        [Obsolete("Racist term removed, please use BadListTypeChecking")]
-        public bool BlackListTypeChecking = true;
         /// <summary>
         /// Checking list of bad types to prevent friday 13th json attacks (default = true)
         /// 
@@ -143,7 +137,6 @@ namespace fastJSON
         {
             return new JSONParameters
             {
-                AllowNonQuotedKeys = AllowNonQuotedKeys,
                 DateTimeMilliseconds = DateTimeMilliseconds,
                 EnableAnonymousTypes = EnableAnonymousTypes,
                 FormatterIndentSpaces = FormatterIndentSpaces,
@@ -242,7 +235,7 @@ namespace fastJSON
         /// <returns></returns>
         public static object Parse(string json)
         {
-            return new JsonParser(json, Parameters.AllowNonQuotedKeys).Decode(null);
+            return new JsonParser(json, true).Decode(null);
         }
 #if NET4
         /// <summary>
@@ -324,7 +317,7 @@ namespace fastJSON
         /// <returns></returns>
         public static object FillObject(object input, string json)
         {
-            Dictionary<string, object> ht = new JsonParser(json, Parameters.AllowNonQuotedKeys).Decode(input.GetType()) as Dictionary<string, object>;
+            Dictionary<string, object> ht = new JsonParser(json, true).Decode(input.GetType()) as Dictionary<string, object>;
             if (ht == null) return null;
             return new deserializer(Parameters).ParseDictionary(ht, null, input.GetType(), input);
         }
@@ -441,7 +434,7 @@ namespace fastJSON
             if (typeof(IDictionary).IsAssignableFrom(t) || typeof(List<>).IsAssignableFrom(t))
                 _usingglobals = false;
 
-            object o = new JsonParser(json, _params.AllowNonQuotedKeys).Decode(type);
+            object o = new JsonParser(json, true).Decode(type);
             if (o == null)
                 return null;
 #if !SILVERLIGHT

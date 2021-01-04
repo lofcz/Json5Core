@@ -291,10 +291,10 @@ public class tests
 
     #endregion
 
-    [TestFixtureSetUp]
+    [OneTimeSetUp]
     public static void setup()
     {
-        //fastJSON.JSON.Parameters = new JSONParameters();
+        fastJSON.JSON.Parameters = new JSONParameters() { UseExtensions = true };
         JSON.Parameters.FixValues();
     }
 
@@ -577,7 +577,7 @@ public class tests
     public static void AnonymousTypes()
     {
         var q = new { Name = "asassa", Address = "asadasd", Age = 12 };
-        string sq = JSON.ToJSON(q, new JSONParameters { EnableAnonymousTypes = true });
+        string sq = JSON.ToJSON(q, new JSONParameters { EnableAnonymousTypes = true, UseExtensions = true });
         Console.WriteLine(sq);
         Assert.AreEqual("{\"Name\":\"asassa\",\"Address\":\"asadasd\",\"Age\":12}", sq);
     }
@@ -586,7 +586,7 @@ public class tests
     public static void Speed_Test_Deserialize()
     {
         Console.Write("fastjson deserialize");
-        JSON.Parameters = new JSONParameters();
+        JSON.Parameters = new JSONParameters() { UseExtensions = true };
         colclass c = CreateObject(false, false);
         double t = 0;
         var stopwatch = new Stopwatch();
@@ -611,7 +611,7 @@ public class tests
     public static void Speed_Test_Serialize()
     {
         Console.Write("fastjson serialize");
-        JSON.Parameters = new JSONParameters();
+        JSON.Parameters = new JSONParameters() { UseExtensions = true };
         //fastJSON.JSON.Parameters.UsingGlobalTypes = false;
         colclass c = CreateObject(false, false);
         double t = 0;
@@ -946,7 +946,7 @@ public class tests
     [Test]
     public static void CommaTests()
     {
-        var s = JSON.ToJSON(new commaclass(), new JSONParameters());
+        var s = JSON.ToJSON(new commaclass(), new JSONParameters() { UseExtensions = true });
         Console.WriteLine(JSON.Beautify(s));
         Assert.AreEqual(true, s.Contains("\"$type\":\"1\","));
 
@@ -1056,7 +1056,7 @@ public class tests
         h.Add(1, "dsjfhksa");
         h.Add("dsds", new class1());
 
-        string s = JSON.ToNiceJSON(h, new JSONParameters());
+        string s = JSON.ToNiceJSON(h, new JSONParameters() { UseExtensions = true });
 
         var o = JSON.ToObject<Hashtable>(s);
         Assert.AreEqual(typeof(Hashtable), o.GetType());
@@ -1104,7 +1104,7 @@ public class tests
         var stringField = new OneOtherConcreteClass("lol");
         var list = new List<abstractClass>() { intField, stringField };
 
-        var json = JSON.ToNiceJSON(list, new JSONParameters());
+        var json = JSON.ToNiceJSON(list, new JSONParameters() { UseExtensions = true });
         Console.WriteLine(json);
         var objects = JSON.ToObject<List<abstractClass>>(json);
     }
@@ -1206,7 +1206,7 @@ public class tests
     [Test]
     public static void enumtest()
     {
-        string s = JSON.ToJSON(new constch(), new JSONParameters { UseValuesOfEnums = true });
+        string s = JSON.ToJSON(new constch(), new JSONParameters { UseValuesOfEnums = true, UseExtensions = true });
         Console.WriteLine(s);
         var o = JSON.ToObject(s);
     }
@@ -1235,7 +1235,7 @@ public class tests
         Console.WriteLine(s);
         Assert.IsFalse(s.Contains("Age1"));
         i = new ignore1 { Age1 = 10, Age2 = 20, Name = "bb" };
-        var j = new JSONParameters();
+        var j = new JSONParameters() { UseExtensions = true };
         j.IgnoreAttributes.Add(typeof(ignoreatt));
         s = JSON.ToJSON(i, j);
         Console.WriteLine(s);
@@ -1256,13 +1256,13 @@ public class tests
         var o = new nondefaultctor(10);
         var s = JSON.ToJSON(o);
         Console.WriteLine(s);
-        var obj = JSON.ToObject<nondefaultctor>(s, new JSONParameters { ParametricConstructorOverride = true, UsingGlobalTypes = true });
+        var obj = JSON.ToObject<nondefaultctor>(s, new JSONParameters { ParametricConstructorOverride = true, UsingGlobalTypes = true, UseExtensions = true });
         Assert.AreEqual(10, obj.age);
         Console.WriteLine("list of objects");
         List<nondefaultctor> l = new List<nondefaultctor> { o, o, o };
         s = JSON.ToJSON(l);
         Console.WriteLine(s);
-        var obj2 = JSON.ToObject<List<nondefaultctor>>(s, new JSONParameters { ParametricConstructorOverride = true, UsingGlobalTypes = true });
+        var obj2 = JSON.ToObject<List<nondefaultctor>>(s, new JSONParameters { ParametricConstructorOverride = true, UsingGlobalTypes = true, UseExtensions = true });
         Assert.AreEqual(3, obj2.Count);
         Assert.AreEqual(10, obj2[1].age);
     }
@@ -1390,7 +1390,7 @@ public class tests
         o.o2obj.parent = o;
         o.child.child = o.o2obj;
 
-        var s = JSON.ToJSON(o, new JSONParameters());
+        var s = JSON.ToJSON(o, new JSONParameters() { UseExtensions = true });
         Console.WriteLine(JSON.Beautify(s));
         var p = JSON.ToObject<o1>(s);
         Assert.AreEqual(p, p.o2obj.parent);
@@ -1519,7 +1519,7 @@ public class tests
         r.TheReferenceA = r.ListOfAs[2];
         r.NextRoot = r;
 
-        var jsonParams = new JSONParameters();
+        var jsonParams = new JSONParameters() { UseExtensions = true };
         jsonParams.UseEscapedUnicode = false;
 
         Console.WriteLine("JSON:\n---\n{0}\n---", JSON.ToJSON(r, jsonParams));
@@ -1532,7 +1532,7 @@ public class tests
     [Test]
     public static void TestMilliseconds()
     {
-        var jpar = new JSONParameters();
+        var jpar = new JSONParameters() { UseExtensions = true };
         jpar.DateTimeMilliseconds = false;
         DateTime dt = DateTime.Now;
         var s = JSON.ToJSON(dt, jpar);
@@ -1594,7 +1594,7 @@ public class tests
     [Test]
     public static void ReadonlyTest()
     {
-        var s = JSON.ToJSON(new readonlyclass(), new JSONParameters { ShowReadOnlyProperties = true });
+        var s = JSON.ToJSON(new readonlyclass(), new JSONParameters { ShowReadOnlyProperties = true, UseExtensions = true });
         var o = JSON.ToObject<readonlyclass>(s.Replace("aa", "cc"));
         Assert.AreEqual("aa", o.ROAddress);
     }
@@ -1622,7 +1622,7 @@ public class tests
         Console.WriteLine("*** circular replace");
         Console.WriteLine(s);
 
-        s = JSON.ToNiceJSON(o, new JSONParameters { InlineCircularReferences = true });
+        s = JSON.ToNiceJSON(o, new JSONParameters { InlineCircularReferences = true, UseExtensions = true });
         Console.WriteLine("*** inline objects");
         Console.WriteLine(s);
     }
@@ -1636,7 +1636,7 @@ public class tests
         r.Field1 = "dsasdF";
         r.Field2 = 2312;
         r.date = DateTime.Now;
-        var s = JSON.ToNiceJSON(r, new JSONParameters { SerializeToLowerCaseNames = true });
+        var s = JSON.ToNiceJSON(r, new JSONParameters { SerializeToLowerCaseNames = true,UseExtensions = true });
         Console.WriteLine(s);
         var o = JSON.ToObject(s);
         Assert.IsNotNull(o);
@@ -1662,7 +1662,7 @@ public class tests
 
         string s = JSON.ToJSON(d);
         Console.WriteLine(s);
-        s = JSON.ToJSON(d, new JSONParameters() { SerializeNullValues = false });
+        s = JSON.ToJSON(d, new JSONParameters() { SerializeNullValues = false, UseExtensions = true });
         Console.WriteLine(s);
         Assert.AreEqual("{\"b\":12}", s);
 
@@ -1688,7 +1688,7 @@ public class tests
     public static void statictest()
     {
         var s = new InstrumentSettings();
-        JSONParameters pa = new JSONParameters();
+        JSONParameters pa = new JSONParameters() { UseExtensions = true };
         pa.UseExtensions = false;
         InstrumentSettings.isOk = true;
         InstrumentSettings.isBad = true;
@@ -1875,7 +1875,7 @@ public class tests
         Assert.AreEqual(2, (o as IDictionary).Count);
     }
 
-    public class ctype
+    /*public class ctype
     {
         public System.Net.IPAddress ip;
     }
@@ -1893,6 +1893,58 @@ public class tests
 
         var o = JSON.ToObject<ctype>(s);
         Assert.AreEqual(ip.ip, o.ip);
+    }*/
+    public class ctype
+    {
+        public HashCode hashcode;
+    }
+    [Test]
+    public static void CustomTypes()
+    {
+        var hashcode = new ctype();
+        hashcode.hashcode = new HashCode();
+
+        //this code is not necessarily efficient:
+        JSON.RegisterCustomType(typeof(HashCode),
+            (x) =>
+            {
+                unsafe
+                {
+                    HashCode y = (HashCode)x;
+                    int* y_ = (int*)&y;
+                    return 
+                    y_[0].ToString("X8") +
+                    y_[1].ToString("X8") +
+                    y_[2].ToString("X8") +
+                    y_[3].ToString("X8") +
+                    y_[4].ToString("X8") +
+                    y_[5].ToString("X8") +
+                    y_[6].ToString("X8") +
+                    y_[7].ToString("X8");
+                }
+            },
+            (x) => 
+            {
+                unsafe
+                {
+                    var x_ = (string)x;
+                    uint y0 = uint.Parse(x_[(0 * 8)..(1 * 8)], System.Globalization.NumberStyles.HexNumber);
+                    uint y1 = uint.Parse(x_[(1 * 8)..(2 * 8)], System.Globalization.NumberStyles.HexNumber);
+                    uint y2 = uint.Parse(x_[(2 * 8)..(3 * 8)], System.Globalization.NumberStyles.HexNumber);
+                    uint y3 = uint.Parse(x_[(3 * 8)..(4 * 8)], System.Globalization.NumberStyles.HexNumber);
+                    uint y4 = uint.Parse(x_[(4 * 8)..(5 * 8)], System.Globalization.NumberStyles.HexNumber);
+                    uint y5 = uint.Parse(x_[(5 * 8)..(6 * 8)], System.Globalization.NumberStyles.HexNumber);
+                    uint y6 = uint.Parse(x_[(6 * 8)..(7 * 8)], System.Globalization.NumberStyles.HexNumber);
+                    uint y7 = uint.Parse(x_[(7 * 8)..(8 * 8)], System.Globalization.NumberStyles.HexNumber);
+                    uint[] ys = { y0, y1, y2, y3, y4, y5, y6, y7 };
+                    fixed (uint* y = ys) return *(HashCode*)&y;
+                }
+            });
+
+        var s = JSON.ToJSON(hashcode);
+
+        var o = JSON.ToObject<ctype>(s);
+        Assert.AreEqual(hashcode.hashcode.ToHashCode(), o.hashcode.ToHashCode());
     }
 
     [Test]
@@ -1904,7 +1956,7 @@ public class tests
     [Test]
     public static void anonymoustype()
     {
-        var jsonParameters = new JSONParameters { EnableAnonymousTypes = true };
+        var jsonParameters = new JSONParameters { EnableAnonymousTypes = true, UseExtensions = true };
         var data = new List<DateTimeOffset>();
         data.Add(new DateTimeOffset(DateTime.Now));
 
@@ -1983,7 +2035,7 @@ public class tests
     {
         Dictionary<string, object> dict = new Dictionary<string, object>();
         dict["With \"Quotes\""] = "With \"Quotes\"";
-        JSONParameters p = new JSONParameters();
+        JSONParameters p = new JSONParameters() { UseExtensions = true };
         p.EnableAnonymousTypes = false;
         p.SerializeNullValues = false;
         p.UseExtensions = false;
@@ -2433,13 +2485,13 @@ public class tests
         //);
 
         // test with UTC format ('Z' in output rather than HH:MM timezone)
-        var s = JSON.ToJSON(dt, new JSONParameters { UseUTCDateTime = true });
+        var s = JSON.ToJSON(dt, new JSONParameters { UseUTCDateTime = true, UseExtensions = true });
         Console.WriteLine(s);
         var d = JSON.ToObject<DateTimeOffset>(s);
         // ticks will differ, so convert both to UTC and use ISO8601 roundtrip format to compare
         Assert.AreEqual(dt.ToUniversalTime().ToString("O"), d.ToUniversalTime().ToString("O"));
 
-        s = JSON.ToJSON(dt, new JSONParameters { UseUTCDateTime = false });
+        s = JSON.ToJSON(dt, new JSONParameters { UseUTCDateTime = false, UseExtensions = true });
         Console.WriteLine(s);
         d = JSON.ToObject<DateTimeOffset>(s);
         Assert.AreEqual(dt.ToUniversalTime().ToString("O"), d.ToUniversalTime().ToString("O"));
@@ -2477,9 +2529,9 @@ public class tests
     public static void ReadonlyProperty()
     {
         var x = new X(10);
-        string s = JSON.ToJSON(x, new JSONParameters { ShowReadOnlyProperties = true });
+        string s = JSON.ToJSON(x, new JSONParameters { ShowReadOnlyProperties = true, UseExtensions = true });
         Assert.True(s.Contains("\"I\":"));
-        var o = JSON.ToObject<X>(s, new JSONParameters { ParametricConstructorOverride = true });
+        var o = JSON.ToObject<X>(s, new JSONParameters { ParametricConstructorOverride = true, UseExtensions = true });
         // no set available -> I = 0
         Assert.AreEqual(0, o.I);
     }
@@ -2500,7 +2552,7 @@ public class tests
         i.list.Add(new class2("4", "5", "hi"));
         i.name = "hi";
 
-        var s = JSON.ToNiceJSON(i);//, new JSONParameters { UseExtensions = true });
+        var s = JSON.ToNiceJSON(i, new JSONParameters() { UseExtensions = true });//, new JSONParameters { UseExtensions = true });
         Console.WriteLine(s);
 
         var o = JSON.ToObject<il>(s);
@@ -2681,8 +2733,8 @@ public class tests
     {
         var t = "test\0test";
         Console.WriteLine(t);
-        var s = fastJSON.JSON.ToJSON(t, new JSONParameters { UseEscapedUnicode = false });
-        Assert.True(s.Contains("\\u0000"));
+        var s = fastJSON.JSON.ToJSON(t, new JSONParameters { UseEscapedUnicode = false, UseExtensions = true });
+        Assert.True(s.Contains("\\0"));
         Console.WriteLine(s);
         var o = fastJSON.JSON.ToObject<string>(s);
         Assert.True(o.Contains("\0"));
@@ -2698,7 +2750,7 @@ public class tests
         Console.WriteLine(s);
         s = JSON.Beautify(s, 2);
         Console.WriteLine(s);
-        s = JSON.ToNiceJSON(c, new JSONParameters { FormatterIndentSpaces = 8 });
+        s = JSON.ToNiceJSON(c, new JSONParameters { FormatterIndentSpaces = 8, UseExtensions = true });
         Console.WriteLine(s);
     }
 
@@ -2755,8 +2807,8 @@ public class tests
 
         d.Mmin = decimal.MinValue;
         d.Mmax = decimal.MaxValue;
-        //d.Dmin = double.MinValue;
-        //d.Dmax = double.MaxValue;
+        d.Dmin = double.MinValue;
+        d.Dmax = double.MaxValue;
         d.DminDec = -double.Epsilon;
         d.DmaxDec = double.Epsilon;
         d.Dni = double.NegativeInfinity;
@@ -2802,9 +2854,8 @@ public class tests
         Assert.AreEqual(d.UImax, o.UImax);
         Assert.AreEqual(d.ULmax, o.ULmax);
 
-        // precision loss
-        //Assert.AreEqual(d.Fmax, o.Fmax);
-        //Assert.AreEqual(d.Fmin, o.Fmin);
+        Assert.AreEqual(d.Fmax, o.Fmax);
+        Assert.AreEqual(d.Fmin, o.Fmin);
         Assert.AreEqual(d.MmaxDec, o.MmaxDec);
         Assert.AreEqual(d.MminDec, o.MminDec);
     }
@@ -2861,7 +2912,7 @@ public class tests
     [Test]
     public static void ArrayOfObjectsWithTypeInfoToObject()
     {
-        var s = JSON.ToJSON(new test[] { new test(), new test() }, new JSONParameters());
+        var s = JSON.ToJSON(new test[] { new test(), new test() }, new JSONParameters() { UseExtensions = true });
         Console.WriteLine(s);
         var o = JSON.ToObject(s);
         Console.WriteLine(o.GetType().ToString());
@@ -2883,21 +2934,21 @@ public class tests
 
 
         var s = "{name:\"m:e\", age   \t:42, \"address\":\"here\"}";
-        var o = JSON.ToObject<nskeys>(s, new JSONParameters { AllowNonQuotedKeys = true });
+        var o = JSON.ToObject<nskeys>(s, new JSONParameters { UseExtensions = true });
         //Console.WriteLine("t1");
         Assert.AreEqual("m:e", o.name);
         Assert.AreEqual("here", o.address);
         Assert.AreEqual(42, o.age);
 
         s = "{name  \t  :\"me\", age : 42, address  :\"here\"}";
-        o = JSON.ToObject<nskeys>(s, new JSONParameters { AllowNonQuotedKeys = true });
+        o = JSON.ToObject<nskeys>(s, new JSONParameters { UseExtensions = true });
         //Console.WriteLine("t2");
         Assert.AreEqual("me", o.name);
         Assert.AreEqual("here", o.address);
         Assert.AreEqual(42, o.age);
 
         s = "{    name   :\"me\", age : 42, address :    \"here\"}";
-        o = JSON.ToObject<nskeys>(s, new JSONParameters { AllowNonQuotedKeys = true });
+        o = JSON.ToObject<nskeys>(s, new JSONParameters { UseExtensions = true });
         //Console.WriteLine("t3");
         Assert.AreEqual("me", o.name);
         Assert.AreEqual("here", o.address);
@@ -3031,7 +3082,7 @@ public class tests
     {
         var s = "\"2018-09-01T09:38:27\"";
 
-        var d = JSON.ToObject<DateTime>(s, new JSONParameters { UseUTCDateTime = false });
+        var d = JSON.ToObject<DateTime>(s, new JSONParameters { UseUTCDateTime = false, UseExtensions = true });
 
         Assert.AreEqual(9, d.Hour);
     }
@@ -3044,7 +3095,7 @@ public class tests
         d.Add(2, new List<double> { 4.4, 5.5, 6.6 });
         var s = JSON.ToJSON(d, new JSONParameters { UseExtensions = false });
 
-        var o = JSON.ToObject<Dictionary<int, List<double>>>(s, new JSONParameters { AutoConvertStringToNumbers = true });
+        var o = JSON.ToObject<Dictionary<int, List<double>>>(s, new JSONParameters { AutoConvertStringToNumbers = true, UseExtensions = true });
 
         Assert.AreEqual(2, o.Count);
         Assert.AreEqual(1.1, o[1][0]);
@@ -3059,7 +3110,7 @@ public class tests
         var s = JSON.ToJSON(d, new JSONParameters { UseExtensions = false });
         Console.WriteLine(s);
 
-        var o = JSON.ToObject<Dictionary<int, double[]>>(s, new JSONParameters { AutoConvertStringToNumbers = true });
+        var o = JSON.ToObject<Dictionary<int, double[]>>(s, new JSONParameters { AutoConvertStringToNumbers = true, UseExtensions = true });
 
         Assert.AreEqual(2, o.Count);
         Assert.AreEqual(1.1, o[1][0]);
@@ -3094,11 +3145,11 @@ public class tests
     {
         var o = new rofield();
 
-        var s = JSON.ToJSON(o, new JSONParameters { ShowReadOnlyProperties = false });
+        var s = JSON.ToJSON(o, new JSONParameters { ShowReadOnlyProperties = false, UseExtensions = true });
         Console.WriteLine(s);
         Assert.False(s.Contains("age"));
 
-        s = JSON.ToJSON(o, new JSONParameters { ShowReadOnlyProperties = true });
+        s = JSON.ToJSON(o, new JSONParameters { ShowReadOnlyProperties = true, UseExtensions = true });
         Console.WriteLine(s);
         Assert.True(s.Contains("age"));
     }
@@ -3152,7 +3203,7 @@ public class tests
             new Circle() { Center = p, Radius = 2 },
             new Circle() { Center = p, Radius = 3 }
         };
-        var jp = new JSONParameters { OverrideObjectHashCodeChecking = true };
+        var jp = new JSONParameters { OverrideObjectHashCodeChecking = true, UseExtensions = true };
         var json = JSON.ToNiceJSON(circles);//, jp);
         Console.WriteLine(json);
         var oc = JSON.ToObject<Circle[]>(json, jp);
@@ -3168,7 +3219,7 @@ public class tests
             new Circle() { Center = new Point(0, 1), Radius = 2 },
             new Circle() { Center = new Point(0, 1), Radius = 3 }
         };
-        var jp = new JSONParameters { OverrideObjectHashCodeChecking = true, InlineCircularReferences = true };
+        var jp = new JSONParameters { OverrideObjectHashCodeChecking = true, InlineCircularReferences = true, UseExtensions = true };
 
         var json = JSON.ToNiceJSON(circles, jp);
         Console.WriteLine(json);
@@ -3204,7 +3255,7 @@ public class tests
         var fail = false;
         try
         {
-            var o = JSON.ToObject(s, new JSONParameters { BadListTypeChecking = true });
+            var o = JSON.ToObject(s, new JSONParameters { BadListTypeChecking = true, UseExtensions = true });
             Console.WriteLine(o.GetType().Name);
             //Assert.AreEqual(o.GetType().Name, "");
             fail = true;
@@ -3223,7 +3274,7 @@ public class tests
     {
         var o1 = new NullTestClass();
         o1.Test = null;
-        string s = JSON.ToJSON(o1, new JSONParameters());
+        string s = JSON.ToJSON(o1, new JSONParameters() { UseExtensions = true });
         Console.WriteLine(s);
         var o2 = JSON.ToObject<NullTestClass>(s);
         Assert.AreEqual(o1.Test, o2.Test);
@@ -3270,20 +3321,20 @@ public class tests
     public static void json5_infinity()
     {
         Assert.AreEqual(double.PositiveInfinity, JSON.ToObject<double>("Infinity"));
-        Assert.AreEqual(double.PositiveInfinity, JSON.ToObject<double>("+infinity"));
+        Assert.AreEqual(double.PositiveInfinity, JSON.ToObject<double>("+Infinity"));
         Assert.AreEqual(double.NegativeInfinity, JSON.ToObject<double>("-Infinity"));
 
-        var s = "{'a':infinity,'b':1,}".Replace("'", "\"");
+        var s = "{'a':Infinity,'b':1,}".Replace("'", "\"");
         var o = (Dictionary<string, object>)JSON.Parse(s);
         Assert.AreEqual(double.PositiveInfinity, (double)o["a"]);
         Assert.AreEqual(1, (long)o["b"]);
 
-        s = "{'a':+infinity,'b':1,}".Replace("'", "\"");
+        s = "{'a':+Infinity,'b':1,}".Replace("'", "\"");
         o = (Dictionary<string, object>)JSON.Parse(s);
         Assert.AreEqual(double.PositiveInfinity, (double)o["a"]);
         Assert.AreEqual(1, (long)o["b"]);
 
-        s = "{'a':-infinity,'b':1,}".Replace("'", "\"");
+        s = "{'a':-Infinity,'b':1,}".Replace("'", "\"");
         o = (Dictionary<string, object>)JSON.Parse(s);
         Assert.AreEqual(double.NegativeInfinity, (double)o["a"]);
         Assert.AreEqual(1, (long)o["b"]);
@@ -3304,7 +3355,6 @@ public class tests
     [Test]
     public static void json5_nan()
     {
-        Assert.AreEqual(double.NaN, JSON.ToObject<double>("nan"));
         Assert.AreEqual(double.NaN, JSON.ToObject<double>("NaN"));
         Assert.AreEqual(double.NaN, JSON.ToObject<double>("+NaN"));
         Assert.AreEqual(double.NaN, JSON.ToObject<double>("-NaN"));
@@ -3383,28 +3433,36 @@ public class tests
     public static void json5_string_escapes()
     {
         Assert.AreEqual("AC/DC", JSON.Parse(@"'\A\C\/\D\C'"));
-        Assert.AreEqual("123456789", JSON.Parse(@"'\1\2\3\4\5\6\7\8\9'"));
+        //Assert.AreEqual("123456789", JSON.Parse(@"'\1\2\3\4\5\6\7\8\9'"));
     }
 
     [Test]
     public static void json5_string_breaks()
     {
-        var s = @"'this is a cont\   
+        var s = @"'this is a cont\
 inuous line.\
 '";
         var ss = JSON.Parse(s);
         Console.WriteLine(ss);
         Assert.AreEqual("this is a continuous line.", ss);
 
-        s = @"'abc\   
+        s = @"'abc\
    message'";
         Assert.AreEqual("abc   message", JSON.Parse(s));
 
-        s = @"'
+        try
+        {
+            JSON.Parse(@"'
 hello
 there
-'";
-        Console.WriteLine(JSON.Parse(s));
+'");
+            Assert.Fail();
+        }
+        catch (Exception ex)
+        {
+            Assert.AreEqual(typeof(Exception), ex.GetType());
+            Assert.AreEqual("Illegal newline character in string at index 1", ex.Message);
+        }
         //Assert.Fail();
     }
 
@@ -3468,6 +3526,354 @@ there
     //    var j = JSON.ToObject<int>("\"G\"", new JSONParameters { AutoConvertStringToNumbers = false });
     //    var i = JSON.ToObject<Item>("{\"Id\":\"G\"}", new JSONParameters { AutoConvertStringToNumbers = false });
     //}
+
+    //tests from https://github.com/json5/json5/blob/32bb2cdae4864b2ac80a6d9b4045efc4cc54f47a/test/parse.js:
+    //they are licensed under https://github.com/json5/json5/blob/32bb2cdae4864b2ac80a6d9b4045efc4cc54f47a/LICENSE.md for their usage and the license of this project for their implementation
+    [Test]
+    public static void json5_additional_tests_1()
+    {
+        var old = JSON.Parameters;
+        JSON.Parameters = new JSONParameters();
+
+        try
+        {
+            Assert.AreEqual("{}", JSON.ToJSON(JSON.Parse("{}")));
+            Console.WriteLine("parses empty objects");
+
+            Assert.AreEqual("{\"a\":1}", JSON.ToJSON(JSON.Parse("{\"a\":1}")));
+            Console.WriteLine("parses double string property names");
+
+            Assert.AreEqual("{\"a\":1}", JSON.ToJSON(JSON.Parse("{'a':1}")));
+            Console.WriteLine("parses single string property names");
+
+            Assert.AreEqual("{\"a\":1}", JSON.ToJSON(JSON.Parse("{a:1}")));
+            Console.WriteLine("parses unquoted property names");
+
+            Assert.AreEqual("{\"$_\":1,\"_$\":2,\"a\u200C\":3}", JSON.ToJSON(JSON.Parse("{$_:1,_$:2,a\u200C:3}")));
+            Console.WriteLine("parses special character property names");
+
+            Assert.AreEqual("{\"ùńîċõďë\":9}", JSON.ToJSON(JSON.Parse("{ùńîċõďë:9}")));
+            Console.WriteLine("parses unicode property names");
+
+            Assert.AreEqual("{\"ab\":1,\"$_\":2,\"_$\":3}", JSON.ToJSON(JSON.Parse("{\\u0061\\u0062:1,\\u0024\\u005F:2,\\u005F\\u0024:3}")));
+            Console.WriteLine("parses escaped property names");
+
+            Assert.AreEqual("{\"abc\":1,\"def\":2}", JSON.ToJSON(JSON.Parse("{abc:1,def:2}")));
+            Console.WriteLine("parses multiple properties");
+
+            Assert.AreEqual("{\"a\":{\"b\":2}}", JSON.ToJSON(JSON.Parse("{a:{b:2}}")));
+            Console.WriteLine("parses nested objects");
+
+            Assert.AreEqual("[]", JSON.ToJSON(JSON.Parse("[]")));
+            Console.WriteLine("parses empty arrays");
+
+            Assert.AreEqual("[1]", JSON.ToJSON(JSON.Parse("[1]")));
+            Console.WriteLine("parses array values");
+
+            Assert.AreEqual("[1,2]", JSON.ToJSON(JSON.Parse("[1,2]")));
+            Console.WriteLine("parses multiple array values");
+
+            Assert.AreEqual("[1,[2,3]]", JSON.ToJSON(JSON.Parse("[1,[2,3]]")));
+            Console.WriteLine("parses nested arrays");
+
+            Assert.AreEqual("null", JSON.ToJSON(JSON.Parse("null")));
+            Console.WriteLine("parses nulls");
+
+            Assert.AreEqual("true", JSON.ToJSON(JSON.Parse("true")));
+            Console.WriteLine("parses true");
+
+            Assert.AreEqual("false", JSON.ToJSON(JSON.Parse("false")));
+            Console.WriteLine("parses false");
+
+            Assert.AreEqual("[0,0,0]", JSON.ToJSON(JSON.Parse("[0,0.,0e0]")));
+            Console.WriteLine("parses leading zeroes");
+
+            Assert.AreEqual("[1,23,456,7890]", JSON.ToJSON(JSON.Parse("[1,23,456,7890]")));
+            Console.WriteLine("parses integers");
+
+            Assert.AreEqual("[-1,2,-0.1,-0]", JSON.ToJSON(JSON.Parse("[-1,+2,-.1,-0]")));
+            Console.WriteLine("parses signed numbers");
+
+            Assert.AreEqual("[0.1,0.23]", JSON.ToJSON(JSON.Parse("[.1,.23]")));
+            Console.WriteLine("parses leading decimal points");
+
+            Assert.AreEqual("[1.0,1.23]", JSON.ToJSON(JSON.Parse("[1.0,1.23]")));
+            Console.WriteLine("parses fractional numbers");
+
+            Assert.AreEqual("[1,10,10,1,1.1,0.1,10]", JSON.ToJSON(JSON.Parse("[1e0,1e1,1e01,1.e0,1.1e0,1e-1,1e+1]")));
+            Console.WriteLine("parses exponents");
+
+            Assert.AreEqual("[1,16,255,255]", JSON.ToJSON(JSON.Parse("[0x1,0x10,0xff,0xFF]")));
+            Console.WriteLine("parses hexadecimal numbers");
+
+            Assert.AreEqual("[Infinity,-Infinity]", JSON.ToJSON(JSON.Parse("[Infinity,-Infinity]")));
+            Console.WriteLine("parses signed and unsigned Infinity");
+
+            Assert.AreEqual("NaN", JSON.ToJSON(JSON.Parse("NaN")));
+            Console.WriteLine("parses NaN");
+
+            Assert.AreEqual("NaN", JSON.ToJSON(JSON.Parse("-NaN")));
+            Console.WriteLine("parses signed NaN");
+
+            Assert.AreEqual("1", JSON.ToJSON(JSON.Parse("1")));
+            Console.WriteLine("parses 1");
+
+            Assert.AreEqual("1.23E+100", JSON.ToJSON(JSON.Parse("+1.23e100"))); //changed
+            Console.WriteLine("parses +1.23e100");
+
+            Assert.AreEqual("1", JSON.ToJSON(JSON.Parse("0x1"))); //changed
+            Console.WriteLine("parses bare hexadecimal number");
+
+            Assert.AreEqual("-1375488932539311409843695", JSON.ToJSON(JSON.Parse("-0x0123456789abcdefABCDEF"))); //changed
+            Console.WriteLine("parses bare long hexadecimal number");
+
+            Assert.AreEqual("\"abc\"", JSON.ToJSON(JSON.Parse("\"abc\"")));
+            Console.WriteLine("parses double quoted strings");
+
+            Assert.AreEqual("\"abc\"", JSON.ToJSON(JSON.Parse("'abc'")));
+            Console.WriteLine("parses single quoted strings");
+
+            Assert.AreEqual("[\"\\\"\",\"'\"]", JSON.ToJSON(JSON.Parse("['\"',\"'\"]")));
+            Console.WriteLine("parses quotes in strings");
+
+            Assert.AreEqual("\b\f\n\r\t\v\0\x0f\u01FF\a'\"", JSON.Parse("'\\b\\f\\n\\r\\t\\v\\0\\x0f\\u01fF\\\n\\\r\n\\\r\\\u2028\\\u2029\\a\\'\\\"'"));
+            Console.WriteLine("parses escaped characters");
+
+            Assert.AreEqual("\"\\b\\f\\n\\r\\t\\v\\0\\u000F\u01ff\\a'\\\"\"", JSON.ToJSON(JSON.Parse("'\\b\\f\\n\\r\\t\\v\\0\\x0f\\u01fF\\\n\\\r\n\\\r\\\u2028\\\u2029\\a\\'\\\"'")));
+            Console.WriteLine("parses escaped characters (pt. 2)");
+
+            Assert.AreEqual("\"\\u2028\\u2029\"", JSON.ToJSON(JSON.Parse("'\u2028\u2029'"))); //todo: warning?
+            Console.WriteLine("parses line and paragraph separators with a warning");
+
+            Assert.AreEqual("{}", JSON.ToJSON(JSON.Parse("{//comment\n}")));
+            Console.WriteLine("parses single-line comments");
+
+            Assert.AreEqual("{}", JSON.ToJSON(JSON.Parse("{}//comment")));
+            Console.WriteLine("parses single-line comments at end of input");
+
+            Assert.AreEqual("{}", JSON.ToJSON(JSON.Parse("{/*comment\n** */}")));
+            Console.WriteLine("parses multi-line comments");
+
+            Assert.AreEqual("{}", JSON.ToJSON(JSON.Parse("{\t\v\f \u00A0\uFEFF\n\r\u2028\u2029\u2003}")));
+            Console.WriteLine("parses whitespace");
+        }
+        finally
+        {
+            JSON.Parameters = old;
+        }
+    }
+
+    private static void AssertException(Type expectedType, string expectedMessage, Action action)
+    {
+        try
+        {
+            action();
+        }
+        catch (Exception ex)
+        {
+            if (ex?.GetType() != expectedType) throw;
+            if (ex?.Message != expectedMessage) throw;
+            return;
+        }
+        throw new Exception("No error was thrown!");
+    }
+
+    //tests from https://github.com/json5/json5/blob/32bb2cdae4864b2ac80a6d9b4045efc4cc54f47a/test/errors.js:
+    //they are licensed under https://github.com/json5/json5/blob/32bb2cdae4864b2ac80a6d9b4045efc4cc54f47a/LICENSE.md for their usage and the license of this project for their implementation
+    [Test]
+    public static void json5_additional_tests_2()
+    {
+        var old = JSON.Parameters;
+        JSON.Parameters = new JSONParameters();
+
+        try
+        {
+            AssertException(typeof(Exception), "Reached end of string unexpectedly", () => JSON.Parse(""));
+            Console.WriteLine("throws on empty documents");
+
+            AssertException(typeof(Exception), "Reached end of string unexpectedly", () => JSON.Parse("//a"));
+            Console.WriteLine("throws on documents with only comments");
+
+            AssertException(typeof(Exception), "Illegal comment declaration at index 0", () => JSON.Parse("/a"));
+            Console.WriteLine("throws on incomplete single line comments");
+
+            AssertException(typeof(Exception), "Unfinished comment declaration starting at index 0", () => JSON.Parse("/*"));
+            Console.WriteLine("throws on unterminated multiline comments");
+
+            AssertException(typeof(Exception), "Unfinished comment declaration starting at index 0", () => JSON.Parse("/**"));
+            Console.WriteLine("throws on unterminated multiline comment closings");
+
+            AssertException(typeof(Exception), "Invalid token at index 0", () => JSON.Parse("a"));
+            Console.WriteLine("throws on invalid characters in values");
+
+            AssertException(typeof(Exception), "Invalid escape '\\a' in IdentifierName at index 2", () => JSON.Parse("{\\a:1}"));
+            Console.WriteLine("throws on invalid characters in identifier start escapes");
+
+            AssertException(typeof(Exception), "Invalid starting character '\\u0021' in IdentifierName at index 2", () => JSON.Parse("{\\u0021:1}"));
+            Console.WriteLine("throws on invalid identifier start characters");
+
+            AssertException(typeof(Exception), "Expected colon at index 3", () => JSON.Parse("{a\\a:1}"));
+            Console.WriteLine("throws on invalid characters in identifier continue escapes");
+
+            AssertException(typeof(Exception), "Invalid continuation character '\\u0021' in IdentifierName at index 3", () => JSON.Parse("{a\\u0021:1}"));
+            Console.WriteLine("throws on invalid identifier continue characters");
+
+            AssertException(typeof(Exception), "Unexpected character 'a' at index 1", () => JSON.Parse("-a"));
+            Console.WriteLine("throws on invalid characters following a sign");
+
+            AssertException(typeof(Exception), "Unexpected character 'a' at index 1", () => JSON.Parse(".a"));
+            Console.WriteLine("throws on invalid characters following a leading decimal point");
+
+            AssertException(typeof(Exception), "Unexpected character 'a' at index 2", () => JSON.Parse("1ea"));
+            Console.WriteLine("throws on invalid characters following an exponent indicator");
+
+            AssertException(typeof(Exception), "Unexpected character 'a' at index 3", () => JSON.Parse("1e-a"));
+            Console.WriteLine("throws on invalid characters following an exponent sign");
+
+            AssertException(typeof(Exception), "Unexpected character 'g' at index 2", () => JSON.Parse("0xg"));
+            Console.WriteLine("throws on invalid characters following a hexadecimal indicator");
+
+            AssertException(typeof(Exception), "Illegal newline character in string at index 1", () => JSON.Parse("\"\n\""));
+            Console.WriteLine("throws on invalid new lines in strings");
+
+            AssertException(typeof(Exception), "Did not reach end of string", () => JSON.Parse("\""));
+            Console.WriteLine("throws on unterminated strings");
+
+            AssertException(typeof(Exception), "Invalid character '!' in IdentifierName at index 2", () => JSON.Parse("{!:1}"));
+            Console.WriteLine("throws on invalid identifier start characters in property names");
+
+            AssertException(typeof(Exception), "Expected colon at index 2", () => JSON.Parse("{a!1}"));
+            Console.WriteLine("throws on invalid characters following a property name");
+
+            AssertException(typeof(Exception), "Missing comma at index 4", () => JSON.Parse("{a:1!}"));
+            Console.WriteLine("throws on invalid characters following a property value");
+
+            AssertException(typeof(Exception), "Invalid token at index 2", () => JSON.Parse("[1!]"));
+            Console.WriteLine("throws on invalid characters following an array value");
+
+            AssertException(typeof(Exception), "Invalid token at index 0", () => JSON.Parse("tru!"));
+            Console.WriteLine("throws on invalid characters in literals");
+
+            AssertException(typeof(Exception), "Did not reach end of string", () => JSON.Parse("\"\\"));
+            Console.WriteLine("throws on unterminated escapes");
+
+            AssertException(typeof(Exception), "Invalid hexadecimal character 'g' at index 3", () => JSON.Parse("\"\\xg\""));
+            Console.WriteLine("throws on invalid first digits in hexadecimal escapes");
+
+            AssertException(typeof(Exception), "Invalid hexadecimal character 'g' at index 4", () => JSON.Parse("\"\\x0g\""));
+            Console.WriteLine("throws on invalid second digits in hexadecimal escapes");
+
+            AssertException(typeof(Exception), "Invalid hexadecimal character 'g' at index 6", () => JSON.Parse("\"\\u000g\""));
+            Console.WriteLine("throws on invalid unicode escapes");
+
+            AssertException(typeof(Exception), "Illegal escape \\1 (at index 2)", () => JSON.Parse("\"\\1\""));
+            AssertException(typeof(Exception), "Illegal escape \\2 (at index 2)", () => JSON.Parse("\"\\2\""));
+            AssertException(typeof(Exception), "Illegal escape \\3 (at index 2)", () => JSON.Parse("\"\\3\""));
+            AssertException(typeof(Exception), "Illegal escape \\4 (at index 2)", () => JSON.Parse("\"\\4\""));
+            AssertException(typeof(Exception), "Illegal escape \\5 (at index 2)", () => JSON.Parse("\"\\5\""));
+            AssertException(typeof(Exception), "Illegal escape \\6 (at index 2)", () => JSON.Parse("\"\\6\""));
+            AssertException(typeof(Exception), "Illegal escape \\7 (at index 2)", () => JSON.Parse("\"\\7\""));
+            AssertException(typeof(Exception), "Illegal escape \\8 (at index 2)", () => JSON.Parse("\"\\8\""));
+            AssertException(typeof(Exception), "Illegal escape \\9 (at index 2)", () => JSON.Parse("\"\\9\""));
+            Console.WriteLine("throws on escaped digits other than 0");
+
+            AssertException(typeof(Exception), "Invalid: octal escapes are not allowed (at index 2)", () => JSON.Parse("'\\01'"));
+            Console.WriteLine("throws on octal escapes");
+
+            AssertException(typeof(Exception), "Invalid character '2' at index 2", () => JSON.Parse("1 2"));
+            Console.WriteLine("throws on multiple values");
+
+            AssertException(typeof(Exception), "Invalid token at index 0", () => JSON.Parse("\x01"));
+            Console.WriteLine("throws with control characters escaped in the message");
+
+            AssertException(typeof(Exception), "Reached end of string unexpectedly", () => JSON.Parse("{"));
+            Console.WriteLine("throws on unclosed objects before property names");
+
+            AssertException(typeof(Exception), "Reached end of string unexpectedly", () => JSON.Parse("{a"));
+            Console.WriteLine("throws on unclosed objects after property names");
+
+            AssertException(typeof(Exception), "Reached end of string unexpectedly", () => JSON.Parse("{a:"));
+            Console.WriteLine("throws on unclosed objects before property values");
+
+            AssertException(typeof(Exception), "Reached end of string unexpectedly", () => JSON.Parse("{a:1"));
+            Console.WriteLine("throws on unclosed objects after property values");
+
+            AssertException(typeof(Exception), "Reached end of string unexpectedly", () => JSON.Parse("["));
+            Console.WriteLine("throws on unclosed arrays before values");
+
+            AssertException(typeof(Exception), "Reached end of string unexpectedly", () => JSON.Parse("[1"));
+            Console.WriteLine("throws on unclosed arrays after values");
+        }
+        finally
+        {
+            JSON.Parameters = old;
+        }
+    }
+
+    [Test]
+    public static void json5_additional_tests_3()
+    {
+        var old = JSON.Parameters;
+        JSON.Parameters = new JSONParameters();
+
+        try
+        {
+            AssertException(typeof(Exception), "Unfinished comment declaration starting at index 1", () => JSON.Parse("{/*}"));
+            Console.WriteLine("{/*} is illegal");
+
+            AssertException(typeof(Exception), "Illegal comment declaration at index 1", () => JSON.Parse("{/\n}"));
+            Console.WriteLine("{/\n} is illegal");
+
+            AssertException(typeof(Exception), "Unfinished comment declaration starting at index 1", () => JSON.Parse("{/**}"));
+            Console.WriteLine("{/**} is illegal");
+
+            AssertException(typeof(Exception), "Unfinished number at end of input", () => JSON.Parse("-"));
+            Console.WriteLine("- is illegal");
+
+            AssertException(typeof(Exception), "Unexpected character '}' at index 4", () => JSON.Parse("{a:-}"));
+            Console.WriteLine("- is illegal in object");
+
+            AssertException(typeof(Exception), "Unfinished number at end of input", () => JSON.Parse("."));
+            Console.WriteLine(". is illegal");
+
+            AssertException(typeof(Exception), "Unexpected character '}' at index 4", () => JSON.Parse("{a:.}"));
+            Console.WriteLine(". is illegal in object");
+
+            AssertException(typeof(Exception), "Unfinished number at end of input", () => JSON.Parse("0x"));
+            Console.WriteLine("0x is illegal");
+
+            AssertException(typeof(Exception), "Unexpected character '}' at index 5", () => JSON.Parse("{a:0x}"));
+            Console.WriteLine("0x is illegal in object");
+
+            AssertException(typeof(Exception), "\\x escape sequence ended prematurely (end of input)", () => JSON.Parse("\"\\x\""));
+            Console.WriteLine("\"\\x\" is illegal due to the end of the string");
+
+            AssertException(typeof(Exception), "\\u escape sequence ended prematurely (end of input)", () => JSON.Parse("\"\\u\""));
+            Console.WriteLine("\"\\u\" is illegal due to the end of the string");
+
+            Assert.AreEqual("\0", JSON.Parse("\"\\0\""));
+            Console.WriteLine("Test for \\0");
+
+            Assert.AreEqual("{}", JSON.ToJSON(JSON.Parse("{} ")));
+            Console.WriteLine("Test for {}SPACE");
+
+            Assert.AreEqual("-0", JSON.ToJSON(JSON.Parse("-0x0")));
+            Console.WriteLine("Test for -0x0 --> -0");
+
+            Assert.AreEqual("9.014404268289631E+28", JSON.ToJSON(JSON.Parse("+0x0123456789abcdefABCDEF0000")));
+            Console.WriteLine("Test for long hex number");
+
+            AssertException(typeof(FormatException), "Input string was not in a correct format.", () => JSON.Parse("..2"));
+            Console.WriteLine(".. is illegal");
+
+            AssertException(typeof(FormatException), "Input string was not in a correct format.", () => JSON.Parse("{a:..2}"));
+            Console.WriteLine(".. is illegal inside of an object");
+        }
+        finally
+        {
+            JSON.Parameters = old;
+        }
+    }
 
 }// UnitTests.Tests
  //}

@@ -75,40 +75,41 @@ namespace fastJSON
 
             else if (
                 obj is int || obj is long ||
-                obj is decimal ||
                 obj is byte || obj is short ||
                 obj is sbyte || obj is ushort ||
                 obj is uint || obj is ulong
             )
                 _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
 
-            else if (obj is double || obj is Double)
+            else if (obj is decimal decimalNumber)
+            {
+                if (decimalNumber == 0.0m) _output.Append((decimal.GetBits(decimalNumber)[3] & -2147483648) != -2147483648 ? "0" : "-0");
+                else _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
+            }
+
+            else if (obj is double)
             {
                 double d = (double)obj;
                 if (double.IsNaN(d))
-                    _output.Append("\"NaN\"");
+                    _output.Append("NaN");
                 else if (double.IsInfinity(d))
-                {
-                    _output.Append('\"');
-                    _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
-                    _output.Append('\"');
-                }
+                    _output.Append(d > 0 ? "Infinity" : "-Infinity");
+                else if (d == 0)
+                    _output.Append((BitConverter.GetBytes(d)[BitConverter.IsLittleEndian ? 7 : 0] & 128) == 0 ? "0" : "-0");
                 else
-                    _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
+                    _output.Append(d.ToString(NumberFormatInfo.InvariantInfo));
             }
-            else if (obj is float || obj is Single)
+            else if (obj is float)
             {
                 float d = (float)obj;
                 if (float.IsNaN(d))
-                    _output.Append("\"NaN\"");
+                    _output.Append("NaN");
                 else if (float.IsInfinity(d))
-                {
-                    _output.Append('\"');
-                    _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
-                    _output.Append('\"');
-                }
+                    _output.Append(d > 0 ? "Infinity" : "-Infinity");
+                else if (d == 0)
+                    _output.Append((BitConverter.GetBytes(d)[BitConverter.IsLittleEndian ? 3 : 0] & 128) == 0 ? "0" : "-0");
                 else
-                    _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
+                    _output.Append(d.ToString(NumberFormatInfo.InvariantInfo));
             }
 
             else if (obj is DateTime)
@@ -120,12 +121,12 @@ namespace fastJSON
             else if (obj is TimeSpan)
                 _output.Append(((TimeSpan)obj).Ticks);
 
-//#if NET4
+            //#if NET4
             else if (_params.KVStyleStringDictionary == false &&
                 obj is IEnumerable<KeyValuePair<string, object>>)
 
                 WriteStringDictionary((IEnumerable<KeyValuePair<string, object>>)obj);
-//#endif
+            //#endif
 
             else if (_params.KVStyleStringDictionary == false && obj is IDictionary &&
                 obj.GetType().IsGenericType && Reflection.Instance.GetGenericArguments(obj.GetType())[0] == typeof(string))
@@ -676,7 +677,9 @@ namespace fastJSON
 
                 if (_useEscapedUnicode)
                 {
-                    if (c >= ' ' && c < 128 && c != '\"' && c != '\\')
+                    if ((c >= ' ' && c < 128 && c != '\"' && c != '\\')
+                        || (char.GetUnicodeCategory(c) is UnicodeCategory.UppercaseLetter or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter or UnicodeCategory.ModifierLetter or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber or UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.DecimalDigitNumber or UnicodeCategory.ConnectorPunctuation)
+                        || (c is '$' or '_' or '\u200C' or '\u200D'))
                     {
                         if (runIndex == -1)
                             runIndex = index;
@@ -686,7 +689,7 @@ namespace fastJSON
                 }
                 else
                 {
-                    if (c != '\t' && c != '\n' && c != '\r' && c != '\"' && c != '\\' && c != '\0')// && c != ':' && c!=',')
+                    if (c != '\t' && c != '\n' && c != '\r' && c != '\"' && c != '\\' && c != '\0' && c != '\f' && c != '\v' && c != '\b' && c != '\a')// && c != ':' && c!=',')
                     {
                         if (runIndex == -1)
                             runIndex = index;
@@ -708,9 +711,15 @@ namespace fastJSON
                     case '\n': _output.Append('\\').Append('n'); break;
                     case '"':
                     case '\\': _output.Append('\\'); _output.Append(c); break;
-                    case '\0': _output.Append("\\u0000"); break;
+                    case '\0': _output.Append('\\').Append('0'); break;
+                    case '\f': _output.Append('\\').Append('f'); break;
+                    case '\v': _output.Append('\\').Append('v'); break;
+                    case '\b': _output.Append('\\').Append('b'); break;
+                    case '\a': _output.Append('\\').Append('a'); break;
                     default:
-                        if (_useEscapedUnicode)
+                        if (_useEscapedUnicode
+                            && (char.GetUnicodeCategory(c) is not UnicodeCategory.UppercaseLetter and not UnicodeCategory.LowercaseLetter and not UnicodeCategory.TitlecaseLetter and not UnicodeCategory.ModifierLetter and not UnicodeCategory.OtherLetter and not UnicodeCategory.LetterNumber and not UnicodeCategory.NonSpacingMark and not UnicodeCategory.SpacingCombiningMark and not UnicodeCategory.DecimalDigitNumber and not UnicodeCategory.ConnectorPunctuation)
+                            && (c is not '$' and not '_' and not '\u200C' and not '\u200D'))
                         {
                             _output.Append("\\u");
                             _output.Append(((int)c).ToString("X4", NumberFormatInfo.InvariantInfo));

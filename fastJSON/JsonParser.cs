@@ -111,7 +111,13 @@ namespace fastJSON
                             _lookup = null;
                     }
                 }
-                return ParseValue(p);
+                var retV = ParseValue(p);
+                SkipWhitespace(p);
+                if (index != _len)
+                {
+                    throw new Exception($"Invalid character '{ p[index] }' at index { index }");
+                }
+                return retV;
             }
         }
 
@@ -237,12 +243,15 @@ namespace fastJSON
 
             ConsumeToken(); // {
 
+            bool wasComma = true;
             while (true)
             {
                 switch (LookAhead(p))
                 {
 
                     case Token.Comma:
+                        if (wasComma) throw new Exception("Unexpected comma at index " + index);
+                        wasComma = true;
                         ConsumeToken();
                         break;
 
@@ -251,6 +260,8 @@ namespace fastJSON
                         return obj;
 
                     default:
+                        if (!wasComma) throw new Exception("Missing comma at index " + index);
+                        wasComma = false;
                         // name
                         string name = ParseKey(p);
 
@@ -485,30 +496,87 @@ namespace fastJSON
 
         private unsafe string ParseKey(char* p)
         {
-            if (allownonquotedkey == false || p[index - 1] == '"')
+            if (allownonquotedkey == false || p[index - 1] == '"' || p[index - 1] == '\'')
                 return ParseString(p);
+
+            return ParseIdentifierNameWithoutQuoteString(p);
+        }
+
+        private unsafe string ParseIdentifierNameWithoutQuoteString(char* p)
+        {
+            bool IsUnicodeLetter(char c) => char.GetUnicodeCategory(c) is UnicodeCategory.UppercaseLetter or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter or UnicodeCategory.ModifierLetter or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber;
+            bool IsUnicodeCombiningMark(char c) => char.GetUnicodeCategory(c) is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark;
+            bool IsUnicodeDigit(char c) => char.GetUnicodeCategory(c) == UnicodeCategory.DecimalDigitNumber;
+            bool IsUnicodeConnectorPunctuation(char c) => char.GetUnicodeCategory(c) == UnicodeCategory.ConnectorPunctuation;
 
             ConsumeToken();
 
-            int len = _len;
-            int run = 0;
-            while (index + run < len)
-            {
-                var c = p[index + run++];
+            if (s.Length > 0)
+                s.Length = 0;
 
-                if (c == ':')
+            bool first = true;
+            while (true)
+            {
+                bool isEscape = false;
+                var c = p[index++];
+                if (IsUnicodeLetter(c) || c is '$' or '_')
                 {
-                    var str = UnsafeSubstring(p, index, run - 1).Trim();
-                    index += run - 1;
-                    return str;
+                    s.Append(c);
+                    first = false;
                 }
+                else if (c == '\\')
+                {
+                    isEscape = true;
+                    c = p[index++];
+                    switch (c)
+                    {
+                        case 'u':
+                        {
+                            int remainingLength = _len - index;
+                            if (remainingLength < 4) throw new Exception("\\u escape sequence ended prematurely (end of input)");
+
+                            // parse the 32 bit hex into an integer codepoint
+                            uint codePoint = ParseUnicode(p[index], p[index + 1], p[index + 2], p[index + 3]);
+                            char c1 = (char)codePoint;
+                            if (c1 is not '$' and not '_' && !IsUnicodeLetter(c1))
+                            {
+                                if (first) throw new Exception($"Invalid starting character '{ "\\u" + codePoint.ToString("X4") }' in IdentifierName at index { index - 1 }");
+								else if (codePoint is not 0x200C and not 0x200D && !IsUnicodeCombiningMark(c1) && !IsUnicodeDigit(c1) && !IsUnicodeConnectorPunctuation(c1)) throw new Exception($"Invalid continuation character '{ "\\u" + codePoint.ToString("X4") }' in IdentifierName at index { index - 1 }");
+                            }
+                            s.Append(c1);
+
+                            // skip 4 chars
+                            index += 4;
+                        }
+                        break;
+
+                        default: goto error;
+                    }
+                    first = false;
+                }
+                else
+                {
+                    if (first) goto error;
+                    if (IsUnicodeCombiningMark(c) || IsUnicodeDigit(c) || IsUnicodeConnectorPunctuation(c) || c is '\u200C' or '\u200D')
+                    {
+                        s.Append(c);
+                    }
+                    else break;
+                }
+                continue;
+                error:
+                if (first) throw new Exception($"Invalid { (isEscape ? "escape" : "character") } '{ (isEscape ? "\\" : "") + c }' in IdentifierName at index { (isEscape ? index - 1 : index) }");
+                else break;
             }
-            throw new Exception("Unable to read key");
+            index--;
+
+            return s.ToString();
         }
 
         private unsafe string ParseString(char* p)
         {
             char quote = p[index - 1];
+            if (quote != '\'' && quote != '"') throw new Exception("Invalid token at index " + index);
             ConsumeToken();
 
             if (s.Length > 0)
@@ -526,6 +594,7 @@ namespace fastJSON
                 var c = p[index + run++];
                 if (c == '\\')
                     break;
+                if (c == '\n' || c == '\r') throw new Exception("Illegal newline character in string at index " + index);
                 if (c == quote)//'\"')
                 {
                     var str = UnsafeSubstring(p, index, run - 1);
@@ -542,7 +611,10 @@ namespace fastJSON
                     return s.ToString();
 
                 if (c != '\\')
+                {
+                    if (c == '\n' || c == '\r') throw new Exception("Illegal newline character in string at index " + (index - 1));
                     s.Append(c);
+                }
                 else
                 {
                     c = p[index++];
@@ -584,47 +656,67 @@ namespace fastJSON
                             break;
 
                         case 'u':
-                            {
-                                //int remainingLength = l - index;
-                                //if (remainingLength < 4) break;
+                        {
+                            int remainingLength = _len - index;
+                            if (remainingLength < 4) throw new Exception("\\u escape sequence ended prematurely (end of input)");
 
-                                // parse the 32 bit hex into an integer codepoint
-                                uint codePoint = ParseUnicode(p[index], p[index + 1], p[index + 2], p[index + 3]);
-                                s.Append((char)codePoint);
+                            // parse the 32 bit hex into an integer codepoint
+                            uint codePoint = ParseUnicode(p[index], p[index + 1], p[index + 2], p[index + 3]);
+                            s.Append((char)codePoint);
 
-                                // skip 4 chars
-                                index += 4;
-                            }
+                            // skip 4 chars
+                            index += 4;
+                        }
+                        break;
+
+                        case 'v':
+                            s.Append('\v');
                             break;
+
+                        case '0':
+                            if (index < len && p[index] is >= '1' and <= '9') throw new Exception("Invalid: octal escapes are not allowed (at index " + (index - 1) + ")");
+                            s.Append('\0');
+                            break;
+
+                        case 'x':
+                        {
+                            int remainingLength = _len - index;
+                            if (remainingLength < 2) throw new Exception("\\x escape sequence ended prematurely (end of input)");
+
+                            // parse the 16 bit hex into an integer codepoint
+                            uint codePoint = ParseUnicode16Bit(p[index], p[index + 1]);
+                            s.Append((char)codePoint);
+
+                            // skip 2 chars
+                            index += 2;
+                        }
+                        break;
+
+                        case 'a':
+                            s.Append('\a');
+                            break;
+
+                        case >= '1' and <= '9':
+                            throw new Exception("Illegal escape \\" + c + " (at index " + (index - 1) + ")");
+
                         default:
-                            if (c == '\r' || c == '\n' || c == ' ' || c == '\t')
+                            if (c == '\r')
                             {
-                                // json5 skip ending whitespace till new line
-                                while (c == '\r' || c == '\n' || c == ' ' || c == '\t')
+                                c = p[index];
+                                if (c == '\n')
                                 {
                                     index++;
                                     c = p[index];
-                                    if (c == '\r' || c == '\n')
-                                    {
-                                        c = p[index + 1];
-                                        if (c == '\r' || c == '\n')
-                                        {
-                                            index += 2;
-                                            c = p[index];
-                                        }
-                                        break;
-                                    }
                                 }
                             }
-                            else
+                            else if (c != '\n' && c != '\u2028' && c != '\u2029')
                                 s.Append(c);
                             break;
                     }
                 }
             }
 
-
-            return s.ToString();
+            throw new Exception("Did not reach end of string");
         }
 
         private unsafe string ParseJson5String(char* p)
@@ -632,7 +724,7 @@ namespace fastJSON
             throw new NotImplementedException();
         }
 
-        private uint ParseSingleChar(char c1, uint multipliyer)
+        private uint ParseSingleChar(char c1, uint multipliyer, int additionalIndex)
         {
             uint p1 = 0;
             if (c1 >= '0' && c1 <= '9')
@@ -641,17 +733,26 @@ namespace fastJSON
                 p1 = (uint)((c1 - 'A') + 10) * multipliyer;
             else if (c1 >= 'a' && c1 <= 'f')
                 p1 = (uint)((c1 - 'a') + 10) * multipliyer;
+            else throw new Exception($"Invalid hexadecimal character '{ c1 }' at index { index + additionalIndex }");
             return p1;
         }
 
         private uint ParseUnicode(char c1, char c2, char c3, char c4)
         {
-            uint p1 = ParseSingleChar(c1, 0x1000);
-            uint p2 = ParseSingleChar(c2, 0x100);
-            uint p3 = ParseSingleChar(c3, 0x10);
-            uint p4 = ParseSingleChar(c4, 1);
+            uint p1 = ParseSingleChar(c1, 0x1000, 0);
+            uint p2 = ParseSingleChar(c2, 0x100, 1);
+            uint p3 = ParseSingleChar(c3, 0x10, 2);
+            uint p4 = ParseSingleChar(c4, 1, 3);
 
             return p1 + p2 + p3 + p4;
+        }
+
+        private uint ParseUnicode16Bit(char c1, char c2)
+        {
+            uint p1 = ParseSingleChar(c1, 0x10, 0);
+            uint p2 = ParseSingleChar(c2, 1, 1);
+
+            return p1 + p2;
         }
 
         private unsafe object ParseNumber(char* p, bool skip)
@@ -663,17 +764,26 @@ namespace fastJSON
             bool dec = false;
             bool dob = false;
             bool run = true;
+            bool hasDigits = false;
+            bool hasDigits2 = false;
             if (p[startIndex] == '.') dec = true;
+            else if (p[startIndex] is >= '0' and <= '9') hasDigits = true;
             do
             {
                 if (index == _len)
                     break;
-                var c = p[index];
 
-                if (c == 'x' || c == 'X')
+                var signedNeg = p[startIndex] == '-';
+                var signed = signedNeg || p[startIndex] == '+';
+
+                var c = p[index];
+                var c1 = p[index + 1];
+
+                if ((!signed && (c == 'x' || c == 'X')) || (signed && (c1 == 'x' || c1 == 'X')))
                 {
                     index++;
-                    return ReadHexNumber(p);
+                    if (signed) index++;
+                    return ReadHexNumber(p, signedNeg);
                 }
 
                 switch (c)
@@ -688,12 +798,17 @@ namespace fastJSON
                     case '7':
                     case '8':
                     case '9':
+                        index++;
+                        if (dob) hasDigits2 = true;
+                        else hasDigits = true;
+                        break;
                     case '+':
                     case '-':
                         index++;
                         break;
                     case 'e':
                     case 'E':
+                        if (!hasDigits) throw new Exception($"Unexpected character '{ c }' at index { index }");
                         dob = true;
                         index++;
                         break;
@@ -701,10 +816,6 @@ namespace fastJSON
                         index++;
                         dec = true;
                         break;
-                    case 'n':
-                    case 'N':
-                        index += 3;
-                        return double.NaN;
                     //break;
                     default:
                         run = false;
@@ -715,27 +826,66 @@ namespace fastJSON
                     run = false;
 
             } while (run);
+            if (index == _len && (!hasDigits || (!hasDigits2 && dob))) throw new Exception("Unfinished number at end of input");
+            if (!hasDigits) throw new Exception($"Unexpected character '{ p[index] }' at index { index }");
+            if (!hasDigits2 && dob) throw new Exception($"Unexpected character '{ p[index] }' at index { index }");
 
             if (skip)
                 return 0;
 
-            if (dob)
+            int force = -1;
+            redo:
+            if (dob || force == 0)
             {
                 string s = UnsafeSubstring(p, startIndex, index - startIndex);
-                return double.Parse(s, NumberFormatInfo.InvariantInfo);
+                var retV = double.Parse(s, NumberFormatInfo.InvariantInfo);
+                if (retV == 0 && s[0] == '-') return -0.0;
+                return retV;
             }
-            if (dec == false && index - startIndex < 20)
-                return Helper.CreateLong(json, startIndex, index - startIndex);
-            else
+            if ((dec == false && index - startIndex < 20) || force == 1)
+            {
+                long retV;
+                try
+                {
+                    retV = Helper.CreateLong(json, startIndex, index - startIndex);
+                }
+                catch
+                {
+                    force = 2;
+                    goto redo;
+                }
+                if (retV == 0 && p[startIndex] == '-') return -0.0;
+                return retV;
+            }
+            else if ((index - startIndex < 30) || force == 2)
             {
                 string s = UnsafeSubstring(p, startIndex, index - startIndex);
-                return decimal.Parse(s, NumberFormatInfo.InvariantInfo);
+                decimal retV;
+				try
+				{
+                    retV = decimal.Parse(s, NumberFormatInfo.InvariantInfo);
+                }
+				catch
+				{
+                    force = 0;
+                    goto redo;
+				}
+                if (retV == 0 && s[0] == '-') return -0.0m;
+                return retV;
             }
+			else
+			{
+                force = 2;
+                goto redo;
+			}
         }
 
-        private unsafe object ReadHexNumber(char* p)
+        private unsafe object ReadHexNumber(char* p, bool neg)
         {
+            int digitsCount = 0;
             long num = 0L;
+            decimal alternateNum = 0.0m;
+            double alternateNum2 = 0.0;
             bool run = true;
             while (run && index < _len)
             {
@@ -752,8 +902,13 @@ namespace fastJSON
                     case '7':
                     case '8':
                     case '9':
+                        digitsCount++;
                         index++;
-                        num = (num << 4) + (c - '0');
+                        if (digitsCount < 15) num = (num << 4) + (c - '0');
+                        else if (digitsCount == 15) alternateNum = num * 16m + (c - '0');
+                        else if (digitsCount is > 15 and < 25) alternateNum = alternateNum * 16m + (c - '0');
+                        else if (digitsCount == 25) alternateNum2 = (double)alternateNum * 16d + (c - '0');
+                        else alternateNum2 = alternateNum2 * 16d + (c - '0');
                         break;
                     case 'a':
                     case 'b':
@@ -761,8 +916,13 @@ namespace fastJSON
                     case 'd':
                     case 'e':
                     case 'f':
+                        digitsCount++;
                         index++;
-                        num = (num << 4) + (c - 'a') + 10;
+                        if (digitsCount < 15) num = (num << 4) + (c - 'a') + 10;
+                        else if (digitsCount == 15) alternateNum = num * 16m + (c - 'a' + 10);
+                        else if (digitsCount is > 15 and < 25) alternateNum = alternateNum * 16m + (c - 'a' + 10);
+                        else if (digitsCount == 25) alternateNum2 = (double)alternateNum * 16d + (c - 'a' + 10);
+                        else alternateNum2 = alternateNum2 * 16d + (c - 'a' + 10);
                         break;
                     case 'A':
                     case 'B':
@@ -770,16 +930,32 @@ namespace fastJSON
                     case 'D':
                     case 'E':
                     case 'F':
+                        digitsCount++;
                         index++;
-                        num = (num << 4) + (c - 'A') + 10;
+                        if (digitsCount < 15) num = (num << 4) + (c - 'A') + 10;
+                        else if (digitsCount == 15) alternateNum = num * 16m + (c - 'A' + 10);
+                        else if (digitsCount is > 15 and < 25) alternateNum = alternateNum * 16m + (c - 'A' + 10);
+                        else if (digitsCount == 25) alternateNum2 = (double)alternateNum * 16d + (c - 'A' + 10);
+                        else alternateNum2 = alternateNum2 * 16d + (c - 'A' + 10);
                         break;
                     default:
                         run = false;
                         break;
                 }
             }
+            if (index == _len && digitsCount == 0) throw new Exception("Unfinished number at end of input");
+            if (digitsCount == 0) throw new Exception($"Unexpected character '{ p[index] }' at index { index }");
+            if (neg)
+            {
+                if (digitsCount < 15 && num == 0) return -0.0d;
+                num = -num;
+                alternateNum = -alternateNum;
+                alternateNum2 = -alternateNum2;
+            }
 
-            return num;
+            if (digitsCount < 15) return num;
+            if (digitsCount < 25) return alternateNum;
+            return alternateNum2;
         }
 
         private unsafe Token LookAhead(char* p)
@@ -817,15 +993,17 @@ namespace fastJSON
                     do
                     {
                         c = p[index];
-                        if (c == '\r' || c == '\n') break; // read till end of line
+                        if (c == '\r' || c == '\n' || c == '\u2028' || c == '\u2029') break; // read till end of line
                     }
                     while (++index < _len);
                 }
 
                 if (c == '/' && p[index + 1] == '*') // c style multi line comments
                 {
+                    int startIndex = index;
                     index++;
                     index++;
+                    bool foundEnd = false;
                     do
                     {
                         c = p[index];
@@ -833,13 +1011,17 @@ namespace fastJSON
                         {
                             index += 2;
                             c = p[index];
+                            foundEnd = true;
                             break; // read till end of comment
                         }
                     }
                     while (++index < _len);
+                    if (!foundEnd) throw new Exception("Unfinished comment declaration starting at index " + startIndex);
                 }
 
-                if (c != ' ' && c != '\t' && c != '\n' && c != '\r')
+                if (c == '/') throw new Exception("Illegal comment declaration at index " + index);
+
+                if (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '\v' && c != '\f' && c != '\u00A0' && c != '\u2028' && c != '\u2029' && c != '\uFEFF' && char.GetUnicodeCategory(c) != UnicodeCategory.SpaceSeparator)
                     break;
                 //switch (c)
                 //{
@@ -858,6 +1040,11 @@ namespace fastJSON
         {
             char c;
             int len = _len;
+
+            if (index == len)
+            {
+                throw new Exception("Reached end of string unexpectedly");
+            }
 
             SkipWhitespace(p);
 
@@ -892,17 +1079,49 @@ namespace fastJSON
                     return Token.String;
 
                 case '-':
-                    if (p[index] == 'i' || p[index] == 'I') // TODO : check all chars ??
+                    if (len - index >= 8 &&
+                        p[index + 0] == 'I' &&
+                        p[index + 1] == 'n' &&
+                        p[index + 2] == 'f' &&
+                        p[index + 3] == 'i' &&
+                        p[index + 4] == 'n' &&
+                        p[index + 5] == 'i' &&
+                        p[index + 6] == 't' &&
+                        p[index + 7] == 'y')
                     {
                         index += 8;
                         return Token.NegInfinity;
                     }
+                    else if (len - index >= 3 &&
+                        p[index + 0] == 'N' &&
+                        p[index + 1] == 'a' &&
+                        p[index + 2] == 'N')
+                    {
+                        index += 3;
+                        return Token.NaN;
+                    }
                     return Token.Number;
                 case '+':
-                    if (p[index] == 'i' || p[index] == 'I') // TODO : check all chars ??
+                    if (len - index >= 8 &&
+                        p[index + 0] == 'I' &&
+                        p[index + 1] == 'n' &&
+                        p[index + 2] == 'f' &&
+                        p[index + 3] == 'i' &&
+                        p[index + 4] == 'n' &&
+                        p[index + 5] == 'i' &&
+                        p[index + 6] == 't' &&
+                        p[index + 7] == 'y')
                     {
                         index += 8;
                         return Token.PosInfinity;
+                    }
+                    else if (len - index >= 3 &&
+                        p[index + 0] == 'N' &&
+                        p[index + 1] == 'a' &&
+                        p[index + 2] == 'N')
+                    {
+                        index += 3;
+                        return Token.NaN;
                     }
                     return Token.Number;
 
@@ -922,9 +1141,19 @@ namespace fastJSON
                 case ':':
                     return Token.Colon;
                 case 'I':
-                case 'i': // TODO : check complete infinity chars
-                    index += 7;
-                    return Token.PosInfinity;
+                    if (len - index >= 7 &&
+                        p[index + 0] == 'n' &&
+                        p[index + 1] == 'f' &&
+                        p[index + 2] == 'i' &&
+                        p[index + 3] == 'n' &&
+                        p[index + 4] == 'i' &&
+                        p[index + 5] == 't' &&
+                        p[index + 6] == 'y')
+                    {
+                        index += 7;
+                        return Token.PosInfinity;
+                    }
+                    break;
 
                 case 'f':
                     if (len - index >= 4 &&
@@ -950,7 +1179,6 @@ namespace fastJSON
                     break;
 
                 case 'n':
-                case 'N':
                     if (len - index >= 3 &&
                         p[index + 0] == 'u' &&
                         p[index + 1] == 'l' &&
@@ -959,9 +1187,12 @@ namespace fastJSON
                         index += 3;
                         return Token.Null;
                     }
-                    else if (len - index >= 2 &&
-                         p[index] == 'a' &&
-                         (p[index + 1] == 'n' || p[index + 1] == 'N'))
+                    break;
+
+                case 'N':
+                    if (len - index >= 2 &&
+                    p[index] == 'a' &&
+                    (p[index + 1] == 'N'))
                     {
                         index += 2;
                         return Token.NaN;

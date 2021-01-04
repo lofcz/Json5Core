@@ -1,0 +1,8 @@
+**/bin/*
+**/obj/*
+.vs/*
+output/*
+output-debug/*
+fastJSONcore/fastJSON5.csproj
+._*
+.DS_Store
