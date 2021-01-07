@@ -7,7 +7,7 @@
         <Authors>Hamish Arblaster, M. Gholam</Authors>
         <PackageProjectUrl>https://github.com/hamarb123/fastJSON5</PackageProjectUrl>
         <Title>fastJSON5</Title>
-        <Description>very fast conformant, polymorphic JSON5 serializer</Description>
+        <Description>Very fast, conformant, and polymorphic JSON5 serializer</Description>
         <Product>fastJSON5</Product>
         <Copyright>mgholam © 2010-2021, hamarb123 © 2020-2021</Copyright>
         <Company>hamarb123, mgholam</Company>
@@ -16,12 +16,12 @@
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <LangVersion>9</LangVersion>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
         <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0; NET4;</DefineConstants>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Optimize>false</Optimize>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <DefineConstants>NETSTANDARD2_0; NET4;</DefineConstants>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Optimize>true</Optimize>

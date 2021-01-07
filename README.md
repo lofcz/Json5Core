@@ -1,11 +1,16 @@
-# fastJSON
+# fastJSON5 (in development - API unstable)
 
+Very fast, conformant, and polymorphic JSON5 serializer.
 
-Smallest, fastest polymorphic JSON serializer
+| Package Name                   | Release (NuGet) | Nightly (NuGet) |
+|--------------------------------|-----------------|-----------------|
+| `fastJSON5`         | [![NuGet](https://img.shields.io/nuget/v/fastJSON5.svg)](https://www.nuget.org/packages/fastJSON5/latest) | [![NuGet](https://img.shields.io/nuget/vpre/fastJSON5.svg)](https://www.nuget.org/packages/fastJSON5/absoluteLatest) |
 
-see the article here : [http://www.codeproject.com/Articles/159450/fastJSON] (http://www.codeproject.com/Articles/159450/fastJSON)
+The [fastJSON how to](https://github.com/mgholam/fastJSON/blob/master/Howto.md) is also applicable to this project, but using the fastJSON5 namespace and the JSON5 class name etc.
 
-Also see [Howto.md](Howto.md)
+When building the project for yourself, open the fastJSONCore.sln solution and build the fastJSON5Builder project to create the executables. Use the fastJSON project at fastJSONcore/fastJSON.csproj (fastJSON in the sln file) to modify the library files. The UnitTests/UnitTestsCore.csproj project (UnitTestsCore in the sln file) is used to do the testing, so use it for anything relating to tests.
+
+Other files: history.txt - history of the fastJSON project, history_json5.txt - history of the fastJSON5 project, fastJSON.nuspec - used to create the nuget package, fastJSON5Renamer - used to rename the relevant classes and namespaces to JSON5 from JSON.
 
 ## Security Warning
 
