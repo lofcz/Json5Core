@@ -11,10 +11,12 @@
         <Product>fastJSON5</Product>
         <Copyright>mgholam © 2010-2021, hamarb123 © 2020-2021</Copyright>
         <Company>hamarb123, mgholam</Company>
-        <Version>0.1.0-2.4.0.1</Version>
+        <Version>1.0.0-2.4.0.1</Version>
         <AssemblyName>fastJSON5</AssemblyName>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <LangVersion>9</LangVersion>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591;1573</NoWarn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
         <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0; NET4;</DefineConstants>

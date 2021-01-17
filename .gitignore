@@ -7,3 +7,4 @@ fastJSONcore/fastJSON5.csproj
 ._*
 .DS_Store
 *.nupkg
+Versions/**

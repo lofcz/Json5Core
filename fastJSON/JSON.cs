@@ -233,10 +233,16 @@ namespace fastJSON
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static object Parse(string json)
+        public static object Parse(string json, IList<string> warnings)
         {
-            return new JsonParser(json, true).Decode(null);
+            return new JsonParser(json, true, warnings).Decode(null);
         }
+        /// <summary>
+        /// Parse a json string and generate a Dictionary&lt;string,object&gt; or List&lt;object&gt; structure
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static object Parse(string json) => Parse(json, null);
 #if NET4
         /// <summary>
         /// Create a .net4 dynamic object from the json string
@@ -315,12 +321,19 @@ namespace fastJSON
         /// <param name="input"></param>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static object FillObject(object input, string json)
+        public static object FillObject(object input, string json, IList<string> warnings)
         {
-            Dictionary<string, object> ht = new JsonParser(json, true).Decode(input.GetType()) as Dictionary<string, object>;
+            Dictionary<string, object> ht = new JsonParser(json, true, warnings).Decode(input.GetType()) as Dictionary<string, object>;
             if (ht == null) return null;
             return new deserializer(Parameters).ParseDictionary(ht, null, input.GetType(), input);
         }
+        /// <summary>
+        /// Fill a given object with the json represenation
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static object FillObject(object input, string json) => FillObject(input, json, null);
         /// <summary>
         /// Deep copy an object i.e. clone to a new object
         /// </summary>
@@ -424,7 +437,8 @@ namespace fastJSON
             return ToObject(json, null);
         }
 
-        public object ToObject(string json, Type type)
+        public object ToObject(string json, Type type) => ToObject(json, type, null);
+        public object ToObject(string json, Type type, IList<string> warnings)
         {
             //_params.FixValues();
             Type t = null;
@@ -434,7 +448,7 @@ namespace fastJSON
             if (typeof(IDictionary).IsAssignableFrom(t) || typeof(List<>).IsAssignableFrom(t))
                 _usingglobals = false;
 
-            object o = new JsonParser(json, true).Decode(type);
+            object o = new JsonParser(json, true, warnings).Decode(type);
             if (o == null)
                 return null;
 #if !SILVERLIGHT

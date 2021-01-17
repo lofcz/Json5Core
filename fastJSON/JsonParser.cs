@@ -71,13 +71,15 @@ namespace fastJSON
         SafeDictionary<string, bool> _lookup;
         SafeDictionary<Type, bool> _seen;
         bool _parseJsonType = false;
+        IList<string> warnings;
 
-        internal JsonParser(string json, bool AllowNonQuotedKeys)//, bool AllowJson5String)
+        internal JsonParser(string json, bool AllowNonQuotedKeys, IList<string> warnings)
         {
             allownonquotedkey = AllowNonQuotedKeys;
             //this.AllowJson5String = AllowJson5String;
             this.json = json.ToCharArray();
             _len = json.Length;
+            this.warnings = warnings;
         }
 
         private void SetupLookup()
@@ -595,6 +597,7 @@ namespace fastJSON
                 if (c == '\\')
                     break;
                 if (c == '\n' || c == '\r') throw new Exception("Illegal newline character in string at index " + index);
+                if (c == '\u2028' || c == '\u2029') break;
                 if (c == quote)//'\"')
                 {
                     var str = UnsafeSubstring(p, index, run - 1);
@@ -613,6 +616,8 @@ namespace fastJSON
                 if (c != '\\')
                 {
                     if (c == '\n' || c == '\r') throw new Exception("Illegal newline character in string at index " + (index - 1));
+                    else if (c == '\u2028') warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2028 in string.");
+                    else if (c == '\u2029') warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2029 in string.");
                     s.Append(c);
                 }
                 else

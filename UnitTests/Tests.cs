@@ -3642,7 +3642,9 @@ there
             Assert.AreEqual("\"\\b\\f\\n\\r\\t\\v\\0\\u000F\u01ff\\a'\\\"\"", JSON.ToJSON(JSON.Parse("'\\b\\f\\n\\r\\t\\v\\0\\x0f\\u01fF\\\n\\\r\n\\\r\\\u2028\\\u2029\\a\\'\\\"'")));
             Console.WriteLine("parses escaped characters (pt. 2)");
 
-            Assert.AreEqual("\"\\u2028\\u2029\"", JSON.ToJSON(JSON.Parse("'\u2028\u2029'"))); //todo: warning?
+            List<string> warnings = new List<string>();
+            Assert.AreEqual("\"\\u2028\\u2029\"", JSON.ToJSON(JSON.Parse("'\u2028\u2029'", warnings)));
+            Assert.AreEqual(new[] { "Warning: invalid ECMAScript at index 1 with character \\u2028 in string.", "Warning: invalid ECMAScript at index 2 with character \\u2029 in string." }, warnings);
             Console.WriteLine("parses line and paragraph separators with a warning");
 
             Assert.AreEqual("{}", JSON.ToJSON(JSON.Parse("{//comment\n}")));
