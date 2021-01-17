@@ -1,4 +1,4 @@
-# fastJSON5 (in development - API unstable)
+# fastJSON5
 
 Very fast, conformant, and polymorphic JSON5 serializer.
 
@@ -9,6 +9,7 @@ Very fast, conformant, and polymorphic JSON5 serializer.
 The [fastJSON how to](https://github.com/mgholam/fastJSON/blob/master/Howto.md) is also applicable to this project, but using the fastJSON5 namespace and the JSON5 class name etc.
 
 When building the project for yourself, open the fastJSONCore.sln solution and build the fastJSON5Builder project to create the executables. Use the fastJSON project at fastJSONcore/fastJSON.csproj (fastJSON in the sln file) to modify the library files. The UnitTests/UnitTestsCore.csproj project (UnitTestsCore in the sln file) is used to do the testing, so use it for anything relating to tests.
+You may encounter issues building if you have the fastJSON.csproj file open in Visual Studio, try closing it if you do.
 
 Other files: history.txt - history of the fastJSON project, history_json5.txt - history of the fastJSON5 project, fastJSON.nuspec - used to create the nuget package, fastJSON5Renamer - used to rename the relevant classes and namespaces to JSON5 from JSON.
 
