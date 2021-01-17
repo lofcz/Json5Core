@@ -1,2 +1,9 @@
+1.0.0-2.4.0.1
+- Add documentation that was missing
+- Add warnings option to be conformant with the specification
+- Update test(s) that should warn
+- Added ignored c# warnings to do with documentation
+- First full release!
+
 0.1.0-2.4.0.1
 - Initial release
