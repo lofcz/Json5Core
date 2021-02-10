@@ -524,6 +524,9 @@ namespace fastJSON
 
         private object ChangeType(object value, Type conversionType)
         {
+            if (conversionType == typeof(object))
+                return value;
+
             if (conversionType == typeof(int))
             {
                 string s = value as string;

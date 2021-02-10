@@ -396,7 +396,7 @@ namespace fastJSON
             DataColumnCollection cols = table.Columns;
             bool rowseparator = false;
             foreach (DataRow row in table.Rows)
-            {
+            {   
                 if (rowseparator) _output.Append(',');
                 rowseparator = true;
                 _output.Append('[');
