@@ -3,14 +3,14 @@
     xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>fastJSON5</id>
-        <version>1.0.0</version>
+        <version>1.0.1</version>
         <title>fastJSON5</title>
         <authors>hamarb123, mgholam</authors>
         <owners />
         <projectUrl>https://github.com/hamarb123/fastJSON5</projectUrl>
         <requireLicenseAcceptance>true</requireLicenseAcceptance>
 		<license type="file">LICENSE</license>
-        <description>Very fast, conformant, and polymorphic JSON5 serializer. This build is based on mgholam/fastJSON 2.4.0.1.</description>
+        <description>Very fast, conformant, and polymorphic JSON5 serializer. This build is based on mgholam/fastJSON 2.4.0.3.</description>
 		<copyright>mgholam © 2010-2021, hamarb123 © 2020-2021</copyright>
     </metadata>
     <files>

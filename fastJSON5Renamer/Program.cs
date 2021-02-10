@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil;
 using System;
+using System.IO;
 
 namespace fastJSON5Renamer
 {
@@ -18,6 +19,11 @@ namespace fastJSON5Renamer
 				}
 			}
 			library.Write(args[1]);
+			string docFileName = args[1];
+			if (docFileName.EndsWith(".dll")) docFileName = docFileName[..^4] + ".xml";
+			var contents = File.ReadAllText(docFileName);
+			contents = contents.Replace("fastJSON", "fastJSON5").Replace("fastJSON5.JSON", "fastJSON5.JSON5").Replace("fastJSON5.JSONParameters", "fastJSON5.JSON5Parameters").Replace("<name>fastJSON55</name>", "<name>fastJSON5</name>");
+			File.WriteAllText(docFileName, contents);
 		}
 	}
 }

@@ -1028,16 +1028,6 @@ namespace fastJSON
 
                 if (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '\v' && c != '\f' && c != '\u00A0' && c != '\u2028' && c != '\u2029' && c != '\uFEFF' && char.GetUnicodeCategory(c) != UnicodeCategory.SpaceSeparator)
                     break;
-                //switch (c)
-                //{
-                //    case ' ':
-                //    case '\t':
-                //    case '\r':
-                //    case '\n':
-                //        break;
-                //    default:
-                //        return;
-                //}
             } while (++index < _len);
         }
 

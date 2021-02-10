@@ -1,3 +1,7 @@
+1.0.1-2.4.0.3
+- Update fastJSON to 2.4.0.3
+- Fix documentation still being missing
+
 1.0.0-2.4.0.1
 - Add documentation that was missing
 - Add warnings option to be conformant with the specification
