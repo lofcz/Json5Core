@@ -2,7 +2,7 @@
 
 Very fast, conformant, and polymorphic JSON5 serializer.
 
-| Package Name                   | Release (NuGet) | Nightly (NuGet) |
+| Package Name                   | Release (NuGet) | Preview (NuGet) |
 |--------------------------------|-----------------|-----------------|
 | `fastJSON5`         | [![NuGet](https://img.shields.io/nuget/v/fastJSON5.svg)](https://www.nuget.org/packages/fastJSON5/latest) | [![NuGet](https://img.shields.io/nuget/vpre/fastJSON5.svg)](https://www.nuget.org/packages/fastJSON5/absoluteLatest) |
 
