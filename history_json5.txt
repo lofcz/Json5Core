@@ -1,3 +1,8 @@
+1.0.2-2.4.0.3
+- Add support for .NET Framework 4 and .NET Standard 2.0!
+- Fix some formatting in the project file
+- Update readme text
+
 1.0.1-2.4.0.3
 - Update fastJSON to 2.4.0.3
 - Fix documentation still being missing
