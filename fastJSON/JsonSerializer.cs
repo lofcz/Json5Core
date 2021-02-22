@@ -97,7 +97,7 @@ namespace fastJSON
                 else if (d == 0)
                     _output.Append((BitConverter.GetBytes(d)[BitConverter.IsLittleEndian ? 7 : 0] & 128) == 0 ? "0" : "-0");
                 else
-                    _output.Append(d.ToString(NumberFormatInfo.InvariantInfo));
+                    _output.Append(d.ToString("R", NumberFormatInfo.InvariantInfo));
             }
             else if (obj is float)
             {
@@ -109,7 +109,7 @@ namespace fastJSON
                 else if (d == 0)
                     _output.Append((BitConverter.GetBytes(d)[BitConverter.IsLittleEndian ? 3 : 0] & 128) == 0 ? "0" : "-0");
                 else
-                    _output.Append(d.ToString(NumberFormatInfo.InvariantInfo));
+                    _output.Append(d.ToString("R", NumberFormatInfo.InvariantInfo));
             }
 
             else if (obj is DateTime)

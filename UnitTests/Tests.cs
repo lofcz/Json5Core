@@ -291,7 +291,11 @@ public class tests
 
     #endregion
 
+#if NET4
+    [TestFixtureSetUp]
+#else
     [OneTimeSetUp]
+#endif
     public static void setup()
     {
         fastJSON.JSON.Parameters = new JSONParameters() { UseExtensions = true };
@@ -1801,7 +1805,8 @@ public class tests
             //Console.WriteLine(" size = " + jsonText.Length);
             for (int i = 0; i < thousandtimes; i++)
             {
-                deserializedStore = (colclass)JSON.ToObject(jsonText);
+                System.IO.File.WriteAllText(@"C:\Users\Hamish\Desktop\text.json", jsonText);
+				deserializedStore = (colclass)JSON.ToObject(jsonText);
             }
             stopwatch.Stop();
             Console.Write("\t" + stopwatch.ElapsedMilliseconds);
@@ -1878,7 +1883,8 @@ public class tests
         Assert.AreEqual(2, (o as IDictionary).Count);
     }
 
-    /*public class ctype
+#if NET4
+    public class ctype
     {
         public System.Net.IPAddress ip;
     }
@@ -1896,7 +1902,8 @@ public class tests
 
         var o = JSON.ToObject<ctype>(s);
         Assert.AreEqual(ip.ip, o.ip);
-    }*/
+    }
+#else
     public class ctype
     {
         public HashCode hashcode;
@@ -1949,6 +1956,7 @@ public class tests
         var o = JSON.ToObject<ctype>(s);
         Assert.AreEqual(hashcode.hashcode.ToHashCode(), o.hashcode.ToHashCode());
     }
+#endif
 
     [Test]
     public static void stringint()
@@ -3865,7 +3873,13 @@ there
             Assert.AreEqual("-0", JSON.ToJSON(JSON.Parse("-0x0")));
             Console.WriteLine("Test for -0x0 --> -0");
 
-            Assert.AreEqual("9.014404268289631E+28", JSON.ToJSON(JSON.Parse("+0x0123456789abcdefABCDEF0000")));
+            Assert.AreEqual(
+#if NET4
+                "9.0144042682896313E+28"
+#else
+                "9.014404268289631E+28"
+#endif
+                , JSON.ToJSON(JSON.Parse("+0x0123456789abcdefABCDEF0000")));
             Console.WriteLine("Test for long hex number");
 
             AssertException(typeof(FormatException), "Input string was not in a correct format.", () => JSON.Parse("..2"));
