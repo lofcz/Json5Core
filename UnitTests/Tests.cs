@@ -1805,7 +1805,6 @@ public class tests
             //Console.WriteLine(" size = " + jsonText.Length);
             for (int i = 0; i < thousandtimes; i++)
             {
-                System.IO.File.WriteAllText(@"C:\Users\Hamish\Desktop\text.json", jsonText);
 				deserializedStore = (colclass)JSON.ToObject(jsonText);
             }
             stopwatch.Stop();

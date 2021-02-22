@@ -11,7 +11,7 @@
         <Product>fastJSON5</Product>
         <Copyright>mgholam © 2010-2021, hamarb123 © 2020-2021</Copyright>
         <Company>hamarb123, mgholam</Company>
-        <Version>1.0.2-2.4.0.3</Version>
+        <Version>1.0.3-2.4.0.3</Version>
         <AssemblyName>fastJSON5</AssemblyName>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <LangVersion>9</LangVersion>
