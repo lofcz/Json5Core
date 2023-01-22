@@ -1,5 +1,12 @@
-2.4.0.3 * 
+2.4.0.5
+- bug fix UseUTCDateTime = true when deserializing dates 
+
+2.4.0.4
+- bug fix skipping serializing static property in structs
+
+2.4.0.3
 - bug fix edge case for deserialize
+- bug fix datamember use 
 
 2.4.0.2 
 - numbers > 32 chars treated as double
