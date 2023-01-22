@@ -2723,6 +2723,14 @@ public class tests
         [fastJSON.DataMember(Name = "id")]
         public int docid;
     }
+
+    public class TestObj
+    {
+
+        [fastJSON.DataMember(Name = "D")] 
+        public int SomeData { get; set; } = -1;
+    }
+
     [Test]
     public static void DataMember()
     {
@@ -2736,6 +2744,9 @@ public class tests
         var ss = fastJSON.JSON.ToJSON(o, new JSONParameters { UseExtensions = false });
         Console.WriteLine(ss);
         Assert.AreEqual(s, ss);
+
+        var popop = JSON.ToObject<TestObj>("{'D':9}");
+        Assert.AreEqual(9, popop.SomeData);
     }
 
     [Test]
@@ -3476,6 +3487,37 @@ there
         //Assert.Fail();
     }
 
+    public struct sstruct
+    {
+        public static int num1 { get; set; }
+        public static int num2;
+    }
+
+    [Test]
+    public static void structstaticproperty()
+    {
+        var o = new sstruct();        
+
+        var s = JSON.ToJSON(o);
+        Console.WriteLine(s);
+    }
+
+    [Test]
+    public static void UTCDateTrue()
+    {
+        var dt = new DateTime(2021, 1, 10, 12, 0, 0, DateTimeKind.Utc);
+        var js = JSON.ToJSON(dt);
+        Console.WriteLine(js);
+        Assert.AreEqual(12 , JSON.ToObject<DateTime>(js, new JSONParameters() { UseUTCDateTime = true }).Hour);
+    }
+    [Test]
+    public static void UTCDateFalse()
+    {
+        var dt = new DateTime(2021, 1, 10, 12, 0, 0, DateTimeKind.Utc);
+        var js = JSON.ToJSON(dt);
+        Console.WriteLine(js);
+        Assert.AreEqual(15, JSON.ToObject<DateTime>(js, new JSONParameters() { UseUTCDateTime = false }).Hour);
+    }
     //[Test]
     //public static void ma()
     //{
