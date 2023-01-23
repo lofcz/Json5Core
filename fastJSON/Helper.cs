@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Reflection;
 
 namespace fastJSON
 {
     public class Helper
     {
-        public static bool IsNullable(Type t)
+		public static bool IsNullable(Type t)
         {
-            if (!t.IsGenericType) return false;
-            Type g = t.GetGenericTypeDefinition();
+			if (!t.IsGenericType()) return false;
+			Type g = t.GetGenericTypeDefinition();
             return (g.Equals(typeof(Nullable<>)));
         }
 

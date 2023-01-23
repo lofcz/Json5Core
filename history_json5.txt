@@ -1,3 +1,9 @@
+1.0.4-2.4.0.5
+- Update license
+- Update fastJSON to 2.4.0.5
+- Add support for many tfms (including limited support for .NET Core 1.0 and Standard 1.5)
+- Binary compat fix: specify enum values for 'myPropInfoType' explicitly (wouldn't have affected any existing distribution of this library)
+
 1.0.3-2.4.0.3
 - Update license
 - Small fix to do with serialising doubles and floats on .NET Framework

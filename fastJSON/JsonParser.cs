@@ -150,12 +150,12 @@ namespace fastJSON
 
             foreach (var e in t.GetGenericArguments())
             {
-                if (e.IsPrimitive)
+                if (e.IsPrimitive())
                     continue;
 
-                bool isstruct = e.IsValueType && !e.IsEnum;
+                bool isstruct = e.IsValueType() && !e.IsEnum();
 
-                if ((e.IsClass || isstruct || e.IsAbstract) && e != typeof(string) && e != typeof(DateTime) && e != typeof(Guid))
+                if ((e.IsClass() || isstruct || e.IsAbstract()) && e != typeof(string) && e != typeof(DateTime) && e != typeof(Guid))
                 {
                     BuildLookup(e);
                 }
@@ -167,9 +167,9 @@ namespace fastJSON
             if (_seen.TryGetValue(t, out bool _))
                 return;
 
-            bool isstruct = t.IsValueType && !t.IsEnum;
+            bool isstruct = t.IsValueType() && !t.IsEnum();
 
-            if ((t.IsClass || isstruct) && t != typeof(string) && t != typeof(DateTime) && t != typeof(Guid))
+            if ((t.IsClass() || isstruct) && t != typeof(string) && t != typeof(DateTime) && t != typeof(Guid))
             {
                 BuildLookup(t.GetElementType());
             }
@@ -193,7 +193,7 @@ namespace fastJSON
             if (_seen.TryGetValue(objtype, out bool _))
                 return;
 
-            if (objtype.IsGenericType)
+            if (objtype.IsGenericType())
                 BuildGenericTypeLookup(objtype);
 
             else if (objtype.IsArray)
@@ -214,7 +214,7 @@ namespace fastJSON
                     if (t.IsArray)
                         BuildArrayTypeLookup(t);
 
-                    if (t.IsGenericType)
+                    if (t.IsGenericType())
                     {
                         // skip if dictionary
                         if (typeof(IDictionary).IsAssignableFrom(t))
@@ -506,10 +506,10 @@ namespace fastJSON
 
         private unsafe string ParseIdentifierNameWithoutQuoteString(char* p)
         {
-            bool IsUnicodeLetter(char c) => char.GetUnicodeCategory(c) is UnicodeCategory.UppercaseLetter or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter or UnicodeCategory.ModifierLetter or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber;
-            bool IsUnicodeCombiningMark(char c) => char.GetUnicodeCategory(c) is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark;
-            bool IsUnicodeDigit(char c) => char.GetUnicodeCategory(c) == UnicodeCategory.DecimalDigitNumber;
-            bool IsUnicodeConnectorPunctuation(char c) => char.GetUnicodeCategory(c) == UnicodeCategory.ConnectorPunctuation;
+            bool IsUnicodeLetter(char c) => CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.UppercaseLetter or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter or UnicodeCategory.ModifierLetter or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber;
+            bool IsUnicodeCombiningMark(char c) => CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark;
+            bool IsUnicodeDigit(char c) => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.DecimalDigitNumber;
+            bool IsUnicodeConnectorPunctuation(char c) => CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.ConnectorPunctuation;
 
             ConsumeToken();
 
@@ -1026,7 +1026,7 @@ namespace fastJSON
 
                 if (c == '/') throw new Exception("Illegal comment declaration at index " + index);
 
-                if (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '\v' && c != '\f' && c != '\u00A0' && c != '\u2028' && c != '\u2029' && c != '\uFEFF' && char.GetUnicodeCategory(c) != UnicodeCategory.SpaceSeparator)
+                if (c != ' ' && c != '\t' && c != '\n' && c != '\r' && c != '\v' && c != '\f' && c != '\u00A0' && c != '\u2028' && c != '\u2029' && c != '\uFEFF' && CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.SpaceSeparator)
                     break;
             } while (++index < _len);
         }

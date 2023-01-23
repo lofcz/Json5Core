@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
 using System.Data;
 #endif
 using System.Globalization;
@@ -129,12 +129,12 @@ namespace fastJSON
             //#endif
 
             else if (_params.KVStyleStringDictionary == false && obj is IDictionary &&
-                obj.GetType().IsGenericType && Reflection.Instance.GetGenericArguments(obj.GetType())[0] == typeof(string))
+                obj.GetType().IsGenericType() && Reflection.Instance.GetGenericArguments(obj.GetType())[0] == typeof(string))
 
                 WriteStringDictionary((IDictionary)obj);
             else if (obj is IDictionary)
                 WriteDictionary((IDictionary)obj);
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
             else if (obj is DataSet)
                 WriteDataset((DataSet)obj);
 
@@ -268,10 +268,10 @@ namespace fastJSON
 
         private void WriteBytes(byte[] bytes)
         {
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETSTANDARD2_0_OR_GREATER || NETCOREAPP2_0_OR_GREATER)
             WriteStringFast(Convert.ToBase64String(bytes, 0, bytes.Length, Base64FormattingOptions.None));
 #else
-            WriteStringFast(Convert.ToBase64String(bytes, 0, bytes.Length));
+			WriteStringFast(Convert.ToBase64String(bytes, 0, bytes.Length));
 #endif
         }
 
@@ -312,7 +312,7 @@ namespace fastJSON
             _output.Append(dt.Second.ToString("00", NumberFormatInfo.InvariantInfo));
         }
 
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
         private DatasetSchema GetSchema(DataTable ds)
         {
             if (ds == null) return null;
@@ -678,7 +678,7 @@ namespace fastJSON
                 if (_useEscapedUnicode)
                 {
                     if ((c >= ' ' && c < 128 && c != '\"' && c != '\\')
-                        || (char.GetUnicodeCategory(c) is UnicodeCategory.UppercaseLetter or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter or UnicodeCategory.ModifierLetter or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber or UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.DecimalDigitNumber or UnicodeCategory.ConnectorPunctuation)
+                        || (CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.UppercaseLetter or UnicodeCategory.LowercaseLetter or UnicodeCategory.TitlecaseLetter or UnicodeCategory.ModifierLetter or UnicodeCategory.OtherLetter or UnicodeCategory.LetterNumber or UnicodeCategory.NonSpacingMark or UnicodeCategory.SpacingCombiningMark or UnicodeCategory.DecimalDigitNumber or UnicodeCategory.ConnectorPunctuation)
                         || (c is '$' or '_' or '\u200C' or '\u200D'))
                     {
                         if (runIndex == -1)
@@ -718,7 +718,7 @@ namespace fastJSON
                     case '\a': _output.Append('\\').Append('a'); break;
                     default:
                         if (_useEscapedUnicode
-                            && (char.GetUnicodeCategory(c) is not UnicodeCategory.UppercaseLetter and not UnicodeCategory.LowercaseLetter and not UnicodeCategory.TitlecaseLetter and not UnicodeCategory.ModifierLetter and not UnicodeCategory.OtherLetter and not UnicodeCategory.LetterNumber and not UnicodeCategory.NonSpacingMark and not UnicodeCategory.SpacingCombiningMark and not UnicodeCategory.DecimalDigitNumber and not UnicodeCategory.ConnectorPunctuation)
+                            && (CharUnicodeInfo.GetUnicodeCategory(c) is not UnicodeCategory.UppercaseLetter and not UnicodeCategory.LowercaseLetter and not UnicodeCategory.TitlecaseLetter and not UnicodeCategory.ModifierLetter and not UnicodeCategory.OtherLetter and not UnicodeCategory.LetterNumber and not UnicodeCategory.NonSpacingMark and not UnicodeCategory.SpacingCombiningMark and not UnicodeCategory.DecimalDigitNumber and not UnicodeCategory.ConnectorPunctuation)
                             && (c is not '$' and not '_' and not '\u200C' and not '\u200D'))
                         {
                             _output.Append("\\u");

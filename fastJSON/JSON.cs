@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
 using System.Data;
 #endif
 using System.Globalization;
@@ -219,7 +219,7 @@ namespace fastJSON
             if (obj == null)
                 return "null";
 
-            if (obj.GetType().IsGenericType)
+            if (obj.GetType().IsGenericType())
                 t = Reflection.Instance.GetGenericTypeDefinition(obj.GetType());
             if (typeof(IDictionary).IsAssignableFrom(t) || typeof(List<>).IsAssignableFrom(t))
                 param.UsingGlobalTypes = false;
@@ -243,7 +243,6 @@ namespace fastJSON
         /// <param name="json"></param>
         /// <returns></returns>
         public static object Parse(string json) => Parse(json, null);
-#if NET4
         /// <summary>
         /// Create a .net4 dynamic object from the json string
         /// </summary>
@@ -253,7 +252,6 @@ namespace fastJSON
         {
             return new DynamicJson(json);
         }
-#endif
         /// <summary>
         /// Create a typed generic object from the json
         /// </summary>
@@ -262,7 +260,7 @@ namespace fastJSON
         /// <returns></returns>
         public static T ToObject<T>(string json)
         {
-            return new deserializer(Parameters).ToObject<T>(json);
+            return new @deserializer(Parameters).ToObject<T>(json);
         }
         /// <summary>
         /// Create a typed generic object from the json with parameter override on this call
@@ -273,7 +271,7 @@ namespace fastJSON
         /// <returns></returns>
         public static T ToObject<T>(string json, JSONParameters param)
         {
-            return new deserializer(param).ToObject<T>(json);
+            return new @deserializer(param).ToObject<T>(json);
         }
         /// <summary>
         /// Create an object from the json
@@ -282,7 +280,7 @@ namespace fastJSON
         /// <returns></returns>
         public static object ToObject(string json)
         {
-            return new deserializer(Parameters).ToObject(json, null);
+            return new @deserializer(Parameters).ToObject(json, null);
         }
         /// <summary>
         /// Create an object from the json with parameter override on this call
@@ -292,7 +290,7 @@ namespace fastJSON
         /// <returns></returns>
         public static object ToObject(string json, JSONParameters param)
         {
-            return new deserializer(param).ToObject(json, null);
+            return new @deserializer(param).ToObject(json, null);
         }
         /// <summary>
         /// Create an object of type from the json
@@ -302,7 +300,7 @@ namespace fastJSON
         /// <returns></returns>
         public static object ToObject(string json, Type type)
         {
-            return new deserializer(Parameters).ToObject(json, type);
+            return new @deserializer(Parameters).ToObject(json, type);
         }
         /// <summary>
         /// Create an object of type from the json with parameter override on this call
@@ -313,7 +311,7 @@ namespace fastJSON
         /// <returns></returns>
         public static object ToObject(string json, Type type, JSONParameters par)
         {
-            return new deserializer(par).ToObject(json, type);
+            return new @deserializer(par).ToObject(json, type);
         }
         /// <summary>
         /// Fill a given object with the json represenation
@@ -325,7 +323,7 @@ namespace fastJSON
         {
             Dictionary<string, object> ht = new JsonParser(json, true, warnings).Decode(input.GetType()) as Dictionary<string, object>;
             if (ht == null) return null;
-            return new deserializer(Parameters).ParseDictionary(ht, null, input.GetType(), input);
+            return new @deserializer(Parameters).ParseDictionary(ht, null, input.GetType(), input);
         }
         /// <summary>
         /// Fill a given object with the json represenation
@@ -341,7 +339,7 @@ namespace fastJSON
         /// <returns></returns>
         public static object DeepCopy(object obj)
         {
-            return new deserializer(Parameters).ToObject(ToJSON(obj));
+            return new @deserializer(Parameters).ToObject(ToJSON(obj));
         }
         /// <summary>
         /// 
@@ -351,7 +349,7 @@ namespace fastJSON
         /// <returns></returns>
         public static T DeepCopy<T>(T obj)
         {
-            return new deserializer(Parameters).ToObject<T>(ToJSON(obj));
+            return new @deserializer(Parameters).ToObject<T>(ToJSON(obj));
         }
 
         /// <summary>
@@ -394,9 +392,9 @@ namespace fastJSON
         }
     }
 
-    internal class deserializer
+    internal class @deserializer
     {
-        public deserializer(JSONParameters param)
+        public @deserializer(JSONParameters param)
         {
             if (param.OverrideObjectHashCodeChecking)
                 _circobj = new Dictionary<object, int>(10, ReferenceEqualityComparer.Default);
@@ -442,7 +440,7 @@ namespace fastJSON
         {
             //_params.FixValues();
             Type t = null;
-            if (type != null && type.IsGenericType)
+            if (type != null && type.IsGenericType())
                 t = Reflection.Instance.GetGenericTypeDefinition(type);
             _usingglobals = _params.UsingGlobalTypes;
             if (typeof(IDictionary).IsAssignableFrom(t) || typeof(List<>).IsAssignableFrom(t))
@@ -451,7 +449,7 @@ namespace fastJSON
             object o = new JsonParser(json, true, warnings).Decode(type);
             if (o == null)
                 return null;
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
             if (type != null)
             {
                 if (type == typeof(DataSet))
@@ -550,7 +548,7 @@ namespace fastJSON
             else if (conversionType == typeof(string))
                 return (string)value;
 
-            else if (conversionType.IsEnum)
+            else if (conversionType.IsEnum())
                 return Helper.CreateEnum(conversionType, value);
 
             else if (conversionType == typeof(DateTime))
@@ -724,7 +722,7 @@ namespace fastJSON
             if (o == null)
             {
                 if (_params.ParametricConstructorOverride)
-                    o = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(type);
+                    o = InternalHelpers.TryGetUninitializedObject(type);
                 else
                     o = Reflection.Instance.FastCreateInstance(type);
             }
@@ -774,10 +772,12 @@ namespace fastJSON
                                 // what about 'else'?
                                 break;
                             case myPropInfoType.ByteArray: oset = Convert.FromBase64String((string)v); break;
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
                             case myPropInfoType.DataSet: oset = CreateDataset((Dictionary<string, object>)v, globaltypes); break;
                             case myPropInfoType.DataTable: oset = CreateDataTable((Dictionary<string, object>)v, globaltypes); break;
-                            case myPropInfoType.Hashtable: // same case as Dictionary
+#endif
+#if !SILVERLIGHT
+							case myPropInfoType.Hashtable: // same case as Dictionary
 #endif
                             case myPropInfoType.Dictionary: oset = CreateDictionary((List<object>)v, pi.pt, pi.GenericTypes, globaltypes); break;
                             case myPropInfoType.StringKeyDictionary: oset = CreateStringKeyDictionary((Dictionary<string, object>)v, pi.pt, pi.GenericTypes, globaltypes); break;
@@ -811,7 +811,7 @@ namespace fastJSON
             return o;
         }
 
-        private static void ProcessMap(object obj, Dictionary<string, myPropInfo> props, Dictionary<string, object> dic)
+		private static void ProcessMap(object obj, Dictionary<string, myPropInfo> props, Dictionary<string, object> dic)
         {
             foreach (KeyValuePair<string, object> kv in dic)
             {
@@ -865,7 +865,7 @@ namespace fastJSON
 
                     else if (ob is List<object>)
                     {
-                        if (bt.IsGenericType)
+                        if (bt.IsGenericType())
                             col.Add((List<object>)ob);//).ToArray());
                         else
                             col.Add(((List<object>)ob).ToArray());
@@ -971,7 +971,7 @@ namespace fastJSON
             return col;
         }
 
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
         private DataSet CreateDataset(Dictionary<string, object> reader, Dictionary<string, object> globalTypes)
         {
             DataSet ds = new DataSet();

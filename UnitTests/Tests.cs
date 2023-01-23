@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+using System.Data;
+#endif
 #if !SILVERLIGHT
 using NUnit.Framework;
-using System.Data;
 #endif
 using System.Collections;
 using System.Threading;
@@ -48,10 +50,10 @@ using System.Collections.ObjectModel;
 #endif
 public class tests
 {
-    #region [  helpers  ]
+#region [  helpers  ]
     static int thousandtimes = 1000;
     static int fivetimes = 5;
-#if !SILVERLIGHT
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
     static DataSet ds = new DataSet();
 #endif
     //static bool exotic = false;
@@ -91,11 +93,13 @@ public class tests
         public bool isNew { get; set; }
         public string laststring { get; set; }
         public Gender gender { get; set; }
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+		public DataSet dataset { get; set; }
+#endif
 #if !SILVERLIGHT
-        public DataSet dataset { get; set; }
         public Hashtable hash { get; set; }
 #endif
-        public Dictionary<string, baseclass> stringDictionary { get; set; }
+		public Dictionary<string, baseclass> stringDictionary { get; set; }
         public Dictionary<baseclass, baseclass> objectDictionary { get; set; }
         public Dictionary<int, baseclass> intDictionary { get; set; }
         public Guid? nullableGuid { get; set; }
@@ -122,10 +126,12 @@ public class tests
             c.hash = new Hashtable();
             c.hash.Add(new class1("0", "hello", Guid.NewGuid()), new class2("1", "code", "desc"));
             c.hash.Add(new class2("0", "hello", "pppp"), new class1("1", "code", Guid.NewGuid()));
-            if (dataset)
+#endif
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+			if (dataset)
                 c.dataset = CreateDataset();
 #endif
-            c.bytes = new byte[1024];
+			c.bytes = new byte[1024];
             c.stringDictionary = new Dictionary<string, baseclass>();
             c.objectDictionary = new Dictionary<baseclass, baseclass>();
             c.intDictionary = new Dictionary<int, baseclass>();
@@ -211,8 +217,8 @@ public class tests
         public object obj;
         public string ppp { get { return "sdfas df "; } }
         public DateTime date { get; set; }
-#if !SILVERLIGHT
-        public DataTable ds { get; set; }
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+		public DataTable ds { get; set; }
 #endif
     }
 
@@ -224,8 +230,8 @@ public class tests
         public int Field2;
         public string ppp { get { return "sdfas df "; } }
         public DateTime date { get; set; }
-#if !SILVERLIGHT
-        public DataTable ds { get; set; }
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+		public DataTable ds { get; set; }
 #endif
     }
 
@@ -249,8 +255,8 @@ public class tests
         return neg ? -num : num;
     }
 
-#if !SILVERLIGHT
-    private static DataSet CreateDataset()
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+	private static DataSet CreateDataset()
     {
         DataSet ds = new DataSet();
         for (int j = 1; j < 3; j++)
@@ -289,9 +295,9 @@ public class tests
         public Retclass Nested { get; set; }
     }
 
-    #endregion
+#endregion
 
-#if NET4
+#if !CORE_TEST
     [TestFixtureSetUp]
 #else
     [OneTimeSetUp]
@@ -318,8 +324,8 @@ public class tests
         r.Field1 = "dsasdF";
         r.Field2 = 2312;
         r.date = DateTime.Now;
-#if !SILVERLIGHT
-        r.ds = CreateDataset().Tables[0];
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+		r.ds = CreateDataset().Tables[0];
 #endif
 
         var s = JSON.ToJSON(r);
@@ -338,8 +344,8 @@ public class tests
         r.Field1 = "dsasdF";
         r.Field2 = 2312;
         r.date = DateTime.Now;
-#if !SILVERLIGHT
-        r.ds = CreateDataset().Tables[0];
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+		r.ds = CreateDataset().Tables[0];
 #endif
 
         var s = JSON.ToNiceJSON(r);
@@ -357,8 +363,8 @@ public class tests
         r.Field1 = "dsasdF";
         r.Field2 = 2312;
         r.date = DateTime.Now;
-#if !SILVERLIGHT
-        r.ds = CreateDataset().Tables[0];
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+		r.ds = CreateDataset().Tables[0];
 #endif
 
         var s = JSON.ToJSON(r);
@@ -878,7 +884,8 @@ public class tests
         Assert.That(zero, Is.EqualTo(o));
     }
 
-
+#endif
+#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
 
     [Test]
     public static void Datasets()
@@ -908,8 +915,10 @@ public class tests
         Assert.AreEqual(100, oo.Rows.Count);
     }
 
+#endif
+#if !SILVERLIGHT
 
-    [Test]
+	[Test]
     public static void DynamicTest()
     {
         string s = "{\"Name\":\"aaaaaa\",\"Age\":10,\"dob\":\"2000-01-01 00:00:00Z\",\"inner\":{\"prop\":30},\"arr\":[1,{\"a\":2},3,4,5,6]}";
@@ -950,7 +959,7 @@ public class tests
     }
 #endif
 
-    [Test]
+	[Test]
     public static void CommaTests()
     {
         var s = JSON.ToJSON(new commaclass(), new JSONParameters() { UseExtensions = true });
@@ -1882,7 +1891,7 @@ public class tests
         Assert.AreEqual(2, (o as IDictionary).Count);
     }
 
-#if NET4
+#if !CORE_TEST || NETFRAMEWORK || !NETCOREAPP3_0_OR_GREATER
     public class ctype
     {
         public System.Net.IPAddress ip;
@@ -2067,7 +2076,7 @@ public class tests
         var d = JSON.ToObject<Dictionary<string, byte[]>>(s);
     }
 
-    #region twitter
+#region twitter
     public class Twitter
     {
         public Query query { get; set; }
@@ -2119,11 +2128,11 @@ public class tests
             public string type { get; set; }
         }
     }
-    #endregion
+#endregion
     [Test]
     public static void twitter()
     {
-        #region tw data
+#region tw data
         string ss = @"{
   ""query"": {
     ""params"": {
@@ -2481,7 +2490,7 @@ public class tests
     ]
   }
 }";
-        #endregion
+#endregion
         var o = JSON.ToObject<Twitter>(ss);
     }
 
@@ -3516,7 +3525,8 @@ there
         var dt = new DateTime(2021, 1, 10, 12, 0, 0, DateTimeKind.Utc);
         var js = JSON.ToJSON(dt);
         Console.WriteLine(js);
-        Assert.AreEqual(15, JSON.ToObject<DateTime>(js, new JSONParameters() { UseUTCDateTime = false }).Hour);
+		var dt2 = DateTime.SpecifyKind(dt.ToLocalTime(), DateTimeKind.Utc);
+        Assert.AreEqual(dt2.Hour, JSON.ToObject<DateTime>(js, new JSONParameters() { UseUTCDateTime = false }).Hour);
     }
     //[Test]
     //public static void ma()
@@ -3915,7 +3925,7 @@ there
             Console.WriteLine("Test for -0x0 --> -0");
 
             Assert.AreEqual(
-#if NET4
+#if NETFRAMEWORK || NET4 || NETCOREAPP && !NETCOREAPP3_0_OR_GREATER
                 "9.0144042682896313E+28"
 #else
                 "9.014404268289631E+28"
@@ -3923,11 +3933,27 @@ there
                 , JSON.ToJSON(JSON.Parse("+0x0123456789abcdefABCDEF0000")));
             Console.WriteLine("Test for long hex number");
 
-            AssertException(typeof(FormatException), "Input string was not in a correct format.", () => JSON.Parse("..2"));
-            Console.WriteLine(".. is illegal");
+			try
+			{
+				AssertException(typeof(FormatException), "Input string was not in a correct format.", () => JSON.Parse("..2"));
+				Console.WriteLine(".. is illegal");
+			}
+			catch
+			{
+				AssertException(typeof(FormatException), "The input string '..2' was not in a correct format.", () => JSON.Parse("..2"));
+				Console.WriteLine(".. is illegal");
+			}
 
-            AssertException(typeof(FormatException), "Input string was not in a correct format.", () => JSON.Parse("{a:..2}"));
-            Console.WriteLine(".. is illegal inside of an object");
+			try
+			{
+				AssertException(typeof(FormatException), "Input string was not in a correct format.", () => JSON.Parse("{a:..2}"));
+				Console.WriteLine(".. is illegal inside of an object");
+			}
+			catch
+			{
+				AssertException(typeof(FormatException), "The input string '..2' was not in a correct format.", () => JSON.Parse("{a:..2}"));
+				Console.WriteLine(".. is illegal inside of an object");
+			}
 
             Assert.AreEqual(1e41, JSON.Parse("100000000000000000000000000000000000000000"));
             Console.WriteLine("Parses 100000000000000000000000000000000000000000");
