@@ -4,15 +4,15 @@
     <PropertyGroup>
         <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-        <Authors>Hamish Arblaster, M. Gholam</Authors>
-        <PackageProjectUrl>https://github.com/hamarb123/fastJSON5</PackageProjectUrl>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Authors>Matěj Štágl, Hamish Arblaster, M. Gholam</Authors>
+        <PackageProjectUrl>https://github.com/lofcz/fastJSON5</PackageProjectUrl>
         <Title>fastJSON5</Title>
         <Description>Very fast, conformant, and polymorphic JSON5 serializer</Description>
         <Product>fastJSON5</Product>
-        <Copyright>mgholam © 2010-2021, hamarb123 © 2020-2023</Copyright>
+        <Copyright>mgholam © 2010-2021, hamarb123 © 2020-2023, matěj štágl © 2024</Copyright>
         <Company>hamarb123, mgholam</Company>
-        <Version>1.0.4-2.4.0.5</Version>
+        <Version>1.0.5</Version>
         <AssemblyName>fastJSON5</AssemblyName>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <LangVersion>preview</LangVersion>
@@ -20,6 +20,7 @@
         <NoWarn>$(NoWarn);1591;1573</NoWarn>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Nullable>enable</Nullable>
+		<PackageId>Lofcz.Forks.FastJSON5</PackageId>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DefineConstants>TRACE;DEBUG;</DefineConstants>
