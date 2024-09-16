@@ -7,6 +7,7 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Collections.Specialized;
+using System.Reflection;
 
 namespace fastJSON
 {
@@ -359,7 +360,7 @@ namespace fastJSON
         /// <returns></returns>
         public static string Beautify(string input)
         {
-            var i = new string(' ', JSON.Parameters.FormatterIndentSpaces);
+            string? i = new string(' ', JSON.Parameters.FormatterIndentSpaces);
             return Formatter.PrettyPrint(input, i);
         }
         /// <summary>
@@ -370,7 +371,7 @@ namespace fastJSON
         /// <returns></returns>
         public static string Beautify(string input, byte spaces)
         {
-            var i = new string(' ', spaces);
+            string? i = new string(' ', spaces);
             return Formatter.PrettyPrint(input, i);
         }
         /// <summary>
@@ -413,7 +414,7 @@ namespace fastJSON
         public T ToObject<T>(string json)
         {
             Type t = typeof(T);
-            var o = ToObject(json, t);
+            object? o = ToObject(json, t);
 
             if (t.IsArray)
             {
@@ -423,11 +424,11 @@ namespace fastJSON
                     object oo = Array.CreateInstance(tt, 0);
                     return (T)oo;
                 }
-                else
-                    return (T)o;
-            }
-            else
+
                 return (T)o;
+            }
+
+            return (T)o;
         }
 
         public object ToObject(string json)
@@ -449,58 +450,103 @@ namespace fastJSON
             object o = new JsonParser(json, true, warnings).Decode(type);
             if (o == null)
                 return null;
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
+
             if (type != null)
             {
                 if (type == typeof(DataSet))
                     return CreateDataset(o as Dictionary<string, object>, null);
-                else if (type == typeof(DataTable))
+                if (type == typeof(DataTable))
                     return CreateDataTable(o as Dictionary<string, object>, null);
             }
-#endif
-            if (o is IDictionary)
+
+            switch (o)
             {
-                if (type != null && typeof(Dictionary<,>).IsAssignableFrom(t)) // deserialize a dictionary
+                case IDictionary when type != null && typeof(Dictionary<,>).IsAssignableFrom(t):
                     return RootDictionary(o, type);
-                else // deserialize an object
+                case IDictionary:
                     return ParseDictionary(o as Dictionary<string, object>, null, type, null);
-            }
-            else if (o is List<object>)
-            {
-                if (type != null)
+                case List<object> list when type != null:
                 {
                     if (typeof(Dictionary<,>).IsAssignableFrom(t)) // kv format
-                        return RootDictionary(o, type);
-                    else if (t == typeof(List<>)) // deserialize to generic list
-                        return RootList(o, type);
-                    else if (type.IsArray)
-                        return RootArray(o, type);
-                    else if (type == typeof(Hashtable))
-                        return RootHashTable((List<object>)o);
+                        return RootDictionary(list, type);
+                    if (t == typeof(List<>)) // deserialize to generic list
+                        return RootList(list, type);
+                    if (type.IsArray)
+                        return RootArray(list, type);
+                    if (type == typeof(Hashtable))
+                        return RootHashTable(list);
+                    if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(HashSet<>))
+                        return RootSet(list, type);
+                    if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(ISet<>))
+                        return RootSet(list, type);
+                    break;
                 }
-                else //if (type == null)
+                //if (type == null)
+                case List<object> { Count: > 0 } list when list[0].GetType() == typeof(Dictionary<string, object>):
                 {
-                    List<object> l = (List<object>)o;
-                    if (l.Count > 0 && l[0].GetType() == typeof(Dictionary<string, object>))
-                    {
-                        Dictionary<string, object> globals = new Dictionary<string, object>();
-                        List<object> op = new List<object>();
-                        // try to get $types 
-                        foreach (var i in l)
-                            op.Add(ParseDictionary((Dictionary<string, object>)i, globals, null, null));
-                        return op;
-                    }
-                    return l.ToArray();
+                    Dictionary<string, object> globals = new Dictionary<string, object>();
+                    List<object> op = [];
+                    // try to get $types 
+                    foreach (object? i in list)
+                        op.Add(ParseDictionary((Dictionary<string, object>)i, globals, null, null));
+                    return op;
+                }
+                case List<object> list:
+                    return list.ToArray();
+                default:
+                {
+                    if (type != null && o.GetType() != type)
+                        return ChangeType(o, type);
+                    break;
                 }
             }
-            else if (type != null && o.GetType() != type)
-                return ChangeType(o, type);
 
             return o;
         }
 
+        private object RootSet(List<object> o, Type type)
+        {
+            // Získáme typ prvků v setu
+            Type elementType = type.GetGenericArguments()[0];
+
+            // Vytvoříme instanci HashSet<T>
+            Type setType = typeof(HashSet<>).MakeGenericType(elementType);
+            Type concreteSetType;
+            if (type.IsInterface && type.GetGenericTypeDefinition() == typeof(ISet<>))
+            {
+                // Pokud je to ISet<T>, použijeme HashSet<T> jako konkrétní implementaci
+                concreteSetType = typeof(HashSet<>).MakeGenericType(elementType);
+            }
+            else
+            {
+                // Jinak použijeme přímo zadaný typ
+                concreteSetType = type;
+            }
+            object set = Reflection.Instance.FastCreateInstance(concreteSetType);
+
+            // Získáme metodu Add pro náš set
+            MethodInfo? addMethod = setType.GetMethod("Add");
+
+            foreach (var item in o)
+            {
+                object val;
+
+                if (item is Dictionary<string, object> dict)
+                    val = ParseDictionary(dict, null, elementType, null);
+                else if (item != null && !elementType.IsInstanceOfType(item))
+                    val = Convert.ChangeType(item, elementType);
+                else
+                    val = item;
+
+                // Přidáme hodnotu do setu
+                addMethod?.Invoke(set, new[] { val });
+            }
+
+            return set;
+        }
+
         #region [   p r i v a t e   m e t h o d s   ]
-        private object RootHashTable(List<object> o)
+        private Hashtable RootHashTable(List<object> o)
         {
             Hashtable h = new Hashtable();
 
@@ -508,11 +554,12 @@ namespace fastJSON
             {
                 object key = values["k"];
                 object val = values["v"];
-                if (key is Dictionary<string, object>)
-                    key = ParseDictionary((Dictionary<string, object>)key, null, typeof(object), null);
+                
+                if (key is Dictionary<string, object> dictionary)
+                    key = ParseDictionary(dictionary, null, typeof(object), null);
 
-                if (val is Dictionary<string, object>)
-                    val = ParseDictionary((Dictionary<string, object>)val, null, typeof(object), null);
+                if (val is Dictionary<string, object> objects)
+                    val = ParseDictionary(objects, null, typeof(object), null);
 
                 h.Add(key, val);
             }
@@ -530,34 +577,29 @@ namespace fastJSON
                 string s = value as string;
                 if (s == null)
                     return (int)((long)value);
-                else if (_params.AutoConvertStringToNumbers)
+                if (_params.AutoConvertStringToNumbers)
                     return Helper.CreateInteger(s, 0, s.Length);
-                else
-                    throw new Exception("AutoConvertStringToNumbers is disabled for converting string : " + value);
+                throw new Exception("AutoConvertStringToNumbers is disabled for converting string : " + value);
             }
-            else if (conversionType == typeof(long))
+
+            if (conversionType == typeof(long))
             {
                 string s = value as string;
                 if (s == null)
                     return (long)value;
-                else if (_params.AutoConvertStringToNumbers)
+                if (_params.AutoConvertStringToNumbers)
                     return Helper.CreateLong(s, 0, s.Length);
-                else
-                    throw new Exception("AutoConvertStringToNumbers is disabled for converting string : " + value);
+                throw new Exception("AutoConvertStringToNumbers is disabled for converting string : " + value);
             }
-            else if (conversionType == typeof(string))
+            if (conversionType == typeof(string))
                 return (string)value;
-
-            else if (conversionType.IsEnum())
+            if (conversionType.IsEnum())
                 return Helper.CreateEnum(conversionType, value);
-
-            else if (conversionType == typeof(DateTime))
+            if (conversionType == typeof(DateTime))
                 return Helper.CreateDateTime((string)value, _params.UseUTCDateTime);
-
-            else if (conversionType == typeof(DateTimeOffset))
+            if (conversionType == typeof(DateTimeOffset))
                 return Helper.CreateDateTimeOffset((string)value);
-
-            else if (Reflection.Instance.IsTypeRegistered(conversionType))
+            if (Reflection.Instance.IsTypeRegistered(conversionType))
                 return Reflection.Instance.CreateCustom((string)value, conversionType);
 
             // 8-30-2014 - James Brooks - Added code for nullable types.
@@ -585,7 +627,7 @@ namespace fastJSON
         private object RootList(object parse, Type type)
         {
             Type[] gtypes = Reflection.Instance.GetGenericArguments(type);
-            var o = (IList)Reflection.Instance.FastCreateList(type, ((IList)parse).Count);
+            IList? o = (IList)Reflection.Instance.FastCreateList(type, ((IList)parse).Count);
             DoParseList((IList)parse, gtypes[0], o);
             return o;
         }
@@ -594,11 +636,11 @@ namespace fastJSON
         {
             Dictionary<string, object> globals = new Dictionary<string, object>();
 
-            foreach (var k in parse)
+            foreach (object? k in parse)
             {
                 _usingglobals = false;
                 object v = k;
-                var a = k as Dictionary<string, object>;
+                Dictionary<string, object>? a = k as Dictionary<string, object>;
                 if (a != null)
                     v = ParseDictionary(a, globals, it, null);
                 else
@@ -611,9 +653,9 @@ namespace fastJSON
         private object RootArray(object parse, Type type)
         {
             Type it = type.GetElementType();
-            var o = (IList)Reflection.Instance.FastCreateInstance(typeof(List<>).MakeGenericType(it));
+            IList? o = (IList)Reflection.Instance.FastCreateInstance(typeof(List<>).MakeGenericType(it));
             DoParseList((IList)parse, it, o);
-            var array = Array.CreateInstance(it, o.Count);
+            Array? array = Array.CreateInstance(it, o.Count);
             o.CopyTo(array, 0);
             return array;
         }
@@ -632,12 +674,12 @@ namespace fastJSON
                     dictionary = t2.Name.StartsWith("Dictionary");
             }
 
-            var arraytype = t2.GetElementType();
+            Type? arraytype = t2.GetElementType();
             if (parse is Dictionary<string, object>)
             {
                 IDictionary o = (IDictionary)Reflection.Instance.FastCreateInstance(type);
 
-                foreach (var kv in (Dictionary<string, object>)parse)
+                foreach (KeyValuePair<string, object> kv in (Dictionary<string, object>)parse)
                 {
                     object v;
                     object k = ChangeType(kv.Key, t1);
@@ -670,13 +712,12 @@ namespace fastJSON
 
         internal object ParseDictionary(Dictionary<string, object> d, Dictionary<string, object> globaltypes, Type type, object input)
         {
-            object tn = "";
             if (type == typeof(NameValueCollection))
                 return Helper.CreateNV(d);
             if (type == typeof(StringDictionary))
                 return Helper.CreateSD(d);
 
-            if (d.TryGetValue("$i", out tn))
+            if (d.TryGetValue("$i", out object tn))
             {
                 object v = null;
                 _cirrev.TryGetValue((int)(long)tn, out v);
@@ -688,7 +729,7 @@ namespace fastJSON
                 _usingglobals = true;
                 if (globaltypes == null)
                     globaltypes = new Dictionary<string, object>();
-                foreach (var kv in (Dictionary<string, object>)tn)
+                foreach (KeyValuePair<string, object> kv in (Dictionary<string, object>)tn)
                 {
                     globaltypes.Add((string)kv.Value, kv.Key);
                 }
@@ -697,21 +738,21 @@ namespace fastJSON
                 _usingglobals = true;
 
             bool found = d.TryGetValue("$type", out tn);
-#if !SILVERLIGHT
-            if (found == false && type == typeof(System.Object))
+
+            switch (found)
             {
-                return d;   // CreateDataset(d, globaltypes);
-            }
-#endif
-            if (found)
-            {
-                if (_usingglobals)
+                case false when type == typeof(object):
+                    return d;   // CreateDataset(d, globaltypes);
+                case true:
                 {
-                    object tname = "";
-                    if (globaltypes != null && globaltypes.TryGetValue((string)tn, out tname))
-                        tn = tname;
+                    if (_usingglobals)
+                    {
+                        if (globaltypes != null && globaltypes.TryGetValue((string)tn, out object tname))
+                            tn = tname;
+                    }
+                    type = Reflection.Instance.GetTypeFromCache((string)tn, _params.BadListTypeChecking);
+                    break;
                 }
-                type = Reflection.Instance.GetTypeFromCache((string)tn, _params.BadListTypeChecking);
             }
 
             if (type == null)
@@ -719,36 +760,33 @@ namespace fastJSON
 
             string typename = type.FullName;
             object o = input;
+            
             if (o == null)
             {
-                if (_params.ParametricConstructorOverride)
-                    o = InternalHelpers.TryGetUninitializedObject(type);
-                else
-                    o = Reflection.Instance.FastCreateInstance(type);
+                o = _params.ParametricConstructorOverride ? InternalHelpers.TryGetUninitializedObject(type) : Reflection.Instance.FastCreateInstance(type);
             }
-            int circount = 0;
-            if (_circobj.TryGetValue(o, out circount) == false)
+
+            if (_circobj.TryGetValue(o, out int circount) == false)
             {
                 circount = _circobj.Count + 1;
                 _circobj.Add(o, circount);
                 _cirrev.Add(circount, o);
             }
 
-            var props = Reflection.Instance.Getproperties(type, typename, _params.ShowReadOnlyProperties);
-            foreach (var kv in d)
+            Dictionary<string, myPropInfo>? props = Reflection.Instance.Getproperties(type, typename, _params.ShowReadOnlyProperties);
+            foreach (KeyValuePair<string, object> kv in d)
             {
-                var n = kv.Key;
-                var v = kv.Value;
+                string? n = kv.Key;
+                object? v = kv.Value;
 
-                string name = n;//.ToLower();
-                if (name == "$map")
+                if (n == "$map")
                 {
-                    ProcessMap(o, props, (Dictionary<string, object>)d[name]);
+                    ProcessMap(o, props, (Dictionary<string, object>)d[n]);
                     continue;
                 }
-                myPropInfo pi;
-                if (props.TryGetValue(name, out pi) == false)
-                    if (props.TryGetValue(name.ToLowerInvariant(), out pi) == false)
+
+                if (props.TryGetValue(n, out myPropInfo pi) == false)
+                    if (props.TryGetValue(n.ToLowerInvariant(), out pi) == false)
                         continue;
 
                 if (pi.CanWrite)
@@ -772,13 +810,9 @@ namespace fastJSON
                                 // what about 'else'?
                                 break;
                             case myPropInfoType.ByteArray: oset = Convert.FromBase64String((string)v); break;
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
                             case myPropInfoType.DataSet: oset = CreateDataset((Dictionary<string, object>)v, globaltypes); break;
                             case myPropInfoType.DataTable: oset = CreateDataTable((Dictionary<string, object>)v, globaltypes); break;
-#endif
-#if !SILVERLIGHT
 							case myPropInfoType.Hashtable: // same case as Dictionary
-#endif
                             case myPropInfoType.Dictionary: oset = CreateDictionary((List<object>)v, pi.pt, pi.GenericTypes, globaltypes); break;
                             case myPropInfoType.StringKeyDictionary: oset = CreateStringKeyDictionary((Dictionary<string, object>)v, pi.pt, pi.GenericTypes, globaltypes); break;
                             case myPropInfoType.NameValue: oset = Helper.CreateNV((Dictionary<string, object>)v); break;
@@ -786,14 +820,14 @@ namespace fastJSON
                             case myPropInfoType.Custom: oset = Reflection.Instance.CreateCustom((string)v, pi.pt); break;
                             default:
                                 {
-                                    if (pi.IsGenericType && pi.IsValueType == false && v is List<object>)
-                                        oset = CreateGenericList((List<object>)v, pi.pt, pi.bt, globaltypes);
+                                    if (pi is { IsGenericType: true, IsValueType: false } && v is List<object> list)
+                                        oset = CreateGenericList(list, pi.pt, pi.bt, globaltypes);
 
-                                    else if ((pi.IsClass || pi.IsStruct || pi.IsInterface) && v is Dictionary<string, object>)
-                                        oset = ParseDictionary((Dictionary<string, object>)v, globaltypes, pi.pt, null);// pi.getter(o));
+                                    else if ((pi.IsClass || pi.IsStruct || pi.IsInterface) && v is Dictionary<string, object> objects)
+                                        oset = ParseDictionary(objects, globaltypes, pi.pt, null);// pi.getter(o));
 
-                                    else if (v is List<object>)
-                                        oset = CreateArray((List<object>)v, pi.pt, typeof(object), globaltypes);
+                                    else if (v is List<object> list1)
+                                        oset = CreateArray(list1, pi.pt, typeof(object), globaltypes);
 
                                     else if (pi.IsValueType)
                                         oset = ChangeType(v, pi.changeType);
@@ -831,7 +865,7 @@ namespace fastJSON
                 bt = typeof(object);
 
             Array col = Array.CreateInstance(bt, data.Count);
-            var arraytype = bt.GetElementType();
+            Type? arraytype = bt.GetElementType();
             // create an array of objects
             for (int i = 0; i < data.Count; i++)
             {
@@ -856,7 +890,7 @@ namespace fastJSON
             if (pt != typeof(object))
             {
                 IList col = (IList)Reflection.Instance.FastCreateList(pt, data.Count);
-                var it = Reflection.Instance.GetGenericArguments(pt)[0];// pt.GetGenericArguments()[0];
+                Type? it = Reflection.Instance.GetGenericArguments(pt)[0];// pt.GetGenericArguments()[0];
                 // create an array of objects
                 foreach (object ob in data)
                 {
@@ -880,21 +914,21 @@ namespace fastJSON
 
         private object CreateStringKeyDictionary(Dictionary<string, object> reader, Type pt, Type[] types, Dictionary<string, object> globalTypes)
         {
-            var col = (IDictionary)Reflection.Instance.FastCreateInstance(pt);
+            IDictionary? col = (IDictionary)Reflection.Instance.FastCreateInstance(pt);
             Type arraytype = null;
             Type t2 = null;
             if (types != null)
                 t2 = types[1];
 
             Type generictype = null;
-            var ga = Reflection.Instance.GetGenericArguments(t2);// t2.GetGenericArguments();
+            Type[]? ga = Reflection.Instance.GetGenericArguments(t2);// t2.GetGenericArguments();
             if (ga.Length > 0)
                 generictype = ga[0];
             arraytype = t2.GetElementType();
 
             foreach (KeyValuePair<string, object> values in reader)
             {
-                var key = values.Key;
+                string? key = values.Key;
                 object val = null;
 
                 if (values.Value is Dictionary<string, object>)
@@ -918,7 +952,7 @@ namespace fastJSON
 
             return col;
         }
-
+        
         private object CreateDictionary(List<object> reader, Type pt, Type[] types, Dictionary<string, object> globalTypes)
         {
             IDictionary col = (IDictionary)Reflection.Instance.FastCreateInstance(pt);
@@ -933,7 +967,7 @@ namespace fastJSON
             Type arraytype = t2;
             if (t2 != null)
             {
-                var ga = Reflection.Instance.GetGenericArguments(t2);// t2.GetGenericArguments();
+                Type[]? ga = Reflection.Instance.GetGenericArguments(t2);// t2.GetGenericArguments();
                 if (ga.Length > 0)
                     generictype = ga[0];
                 arraytype = t2.GetElementType();
@@ -945,16 +979,16 @@ namespace fastJSON
                 object key = values["k"];
                 object val = values["v"];
 
-                if (key is Dictionary<string, object>)
-                    key = ParseDictionary((Dictionary<string, object>)key, globalTypes, t1, null);
+                if (key is Dictionary<string, object> objects)
+                    key = ParseDictionary(objects, globalTypes, t1, null);
                 else
                     key = ChangeType(key, t1);
 
                 if (root)
                     val = RootDictionary(val, t2);
 
-                else if (val is Dictionary<string, object>)
-                    val = ParseDictionary((Dictionary<string, object>)val, globalTypes, t2, null);
+                else if (val is Dictionary<string, object> dictionary)
+                    val = ParseDictionary(dictionary, globalTypes, t2, null);
 
                 else if (types != null && t2.IsArray)
                     val = CreateArray((List<object>)val, t2, arraytype, globalTypes);
@@ -979,7 +1013,7 @@ namespace fastJSON
             ds.BeginInit();
 
             // read dataset schema here
-            var schema = reader["$schema"];
+            object? schema = reader["$schema"];
 
             if (schema is string)
             {
@@ -995,7 +1029,7 @@ namespace fastJSON
                     if (ds.Tables.Contains(ms.Info[i]) == false)
                         ds.Tables.Add(ms.Info[i]);
                     // blacklist checking
-                    var t = //Type.GetType(ms.Info[i + 2]);
+                    Type? t = //Type.GetType(ms.Info[i + 2]);
                             Reflection.Instance.GetTypeFromCache(ms.Info[i + 2], true);
                     ds.Tables[ms.Info[i]].Columns.Add(ms.Info[i + 1], t);
                 }
@@ -1039,7 +1073,7 @@ namespace fastJSON
             {
                 //object[] v = row.ToArray(); //new object[row.Count];
                 //row.CopyTo(v, 0);
-                var v = row;
+                List<object>? v = row;
                 foreach (int i in guidcols)
                 {
                     string s = (string)v[i];
@@ -1070,10 +1104,10 @@ namespace fastJSON
 
         DataTable CreateDataTable(Dictionary<string, object> reader, Dictionary<string, object> globalTypes)
         {
-            var dt = new DataTable();
+            DataTable? dt = new DataTable();
 
             // read dataset schema here
-            var schema = reader["$schema"];
+            object? schema = reader["$schema"];
 
             if (schema is string)
             {
@@ -1082,23 +1116,23 @@ namespace fastJSON
             }
             else
             {
-                var ms = (DatasetSchema)ParseDictionary((Dictionary<string, object>)schema, globalTypes, typeof(DatasetSchema), null);
+                DatasetSchema? ms = (DatasetSchema)ParseDictionary((Dictionary<string, object>)schema, globalTypes, typeof(DatasetSchema), null);
                 dt.TableName = ms.Info[0];
                 for (int i = 0; i < ms.Info.Count; i += 3)
                 {
                     // blacklist checking
-                    var t = //Type.GetType(ms.Info[i + 2]);
+                    Type? t = //Type.GetType(ms.Info[i + 2]);
                             Reflection.Instance.GetTypeFromCache(ms.Info[i + 2], true);
                     dt.Columns.Add(ms.Info[i + 1], t);
                 }
             }
 
-            foreach (var pair in reader)
+            foreach (KeyValuePair<string, object> pair in reader)
             {
                 if (pair.Key == "$type" || pair.Key == "$schema")
                     continue;
 
-                var rows = (List<object>)pair.Value;
+                List<object>? rows = (List<object>)pair.Value;
                 if (rows == null)
                     continue;
 

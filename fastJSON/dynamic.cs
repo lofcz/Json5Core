@@ -13,7 +13,7 @@ namespace fastJSON
 
         public DynamicJson(string json)
         {
-            var parse = fastJSON.JSON.Parse(json);
+            object parse = fastJSON.JSON.Parse(json);
 
             if (parse is IDictionary<string, object>)
                 _dictionary = (IDictionary<string, object>)parse;
@@ -34,7 +34,7 @@ namespace fastJSON
 
         public override bool TryGetIndex(GetIndexBinder binder, Object[] indexes, out Object result)
         {
-            var index = indexes[0];
+            object index = indexes[0];
             if (index is int)
             {
                 result = _list[(int) index];
@@ -76,7 +76,7 @@ namespace fastJSON
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            foreach(var o in _list)
+            foreach(object o in _list)
             {
                 yield return new DynamicJson(o as IDictionary<string, object>);
             }

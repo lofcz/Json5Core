@@ -101,7 +101,7 @@ namespace fastJSON
             {
                 if (objtype != null)
                 {
-                    if (CheckForTypeInJson(p) == false)
+                    if (!CheckForTypeInJson(p))
                     {
                         _parseJsonType = true;
                         SetupLookup();
@@ -113,7 +113,7 @@ namespace fastJSON
                             _lookup = null;
                     }
                 }
-                var retV = ParseValue(p);
+                object? retV = ParseValue(p);
                 SkipWhitespace(p);
                 if (index != _len)
                 {
@@ -148,7 +148,7 @@ namespace fastJSON
             if (_seen.TryGetValue(t, out bool _))
                 return;
 
-            foreach (var e in t.GetGenericArguments())
+            foreach (Type? e in t.GetGenericArguments())
             {
                 if (e.IsPrimitive())
                     continue;
@@ -205,7 +205,7 @@ namespace fastJSON
             {
                 _seen.Add(objtype, true);
 
-                foreach (var m in Reflection.Instance.Getproperties(objtype, objtype.FullName, true))
+                foreach (KeyValuePair<string, myPropInfo> m in Reflection.Instance.Getproperties(objtype, objtype.FullName, true))
                 {
                     Type t = m.Value.pt;
 
@@ -267,7 +267,7 @@ namespace fastJSON
                         // name
                         string name = ParseKey(p);
 
-                        var n = NextToken(p);
+                        Token n = NextToken(p);
                         // :
                         if (n != Token.Colon)
                         {
@@ -286,7 +286,7 @@ namespace fastJSON
                                 if (_lookup == null)
                                     SetupLookup();
 
-                                foreach (var v in types.Keys)
+                                foreach (string? v in types.Keys)
                                     BuildLookup(Reflection.Instance.GetTypeFromCache(v, true));
 
                                 obj[name] = types;
@@ -297,7 +297,7 @@ namespace fastJSON
                             if (name == "$schema")
                             {
                                 _parseType = true;
-                                var value = ParseValue(p);
+                                object? value = ParseValue(p);
                                 _parseType = false;
                                 obj[name] = value;
                                 break;
@@ -370,7 +370,7 @@ namespace fastJSON
                         // name
                         SkipString(p);
 
-                        var n = NextToken(p);
+                        Token n = NextToken(p);
                         // :
                         if (n != Token.Colon)
                         {
@@ -414,7 +414,7 @@ namespace fastJSON
             // escaped string
             while (index < len)
             {
-                var c = p[index++];
+                char c = p[index++];
                 if (c == '"')
                     return;
 
@@ -430,7 +430,7 @@ namespace fastJSON
 
         private unsafe List<object> ParseArray(char* p)
         {
-            List<object> array = new List<object>();
+            List<object> array = [];
             ConsumeToken(); // [
 
             while (true)
@@ -520,7 +520,7 @@ namespace fastJSON
             while (true)
             {
                 bool isEscape = false;
-                var c = p[index++];
+                char c = p[index++];
                 if (IsUnicodeLetter(c) || c is '$' or '_')
                 {
                     s.Append(c);
@@ -543,7 +543,7 @@ namespace fastJSON
                             if (c1 is not '$' and not '_' && !IsUnicodeLetter(c1))
                             {
                                 if (first) throw new Exception($"Invalid starting character '{ "\\u" + codePoint.ToString("X4") }' in IdentifierName at index { index - 1 }");
-								else if (codePoint is not 0x200C and not 0x200D && !IsUnicodeCombiningMark(c1) && !IsUnicodeDigit(c1) && !IsUnicodeConnectorPunctuation(c1)) throw new Exception($"Invalid continuation character '{ "\\u" + codePoint.ToString("X4") }' in IdentifierName at index { index - 1 }");
+                                if (codePoint is not 0x200C and not 0x200D && !IsUnicodeCombiningMark(c1) && !IsUnicodeDigit(c1) && !IsUnicodeConnectorPunctuation(c1)) throw new Exception($"Invalid continuation character '{ "\\u" + codePoint.ToString("X4") }' in IdentifierName at index { index - 1 }");
                             }
                             s.Append(c1);
 
@@ -568,7 +568,7 @@ namespace fastJSON
                 continue;
                 error:
                 if (first) throw new Exception($"Invalid { (isEscape ? "escape" : "character") } '{ (isEscape ? "\\" : "") + c }' in IdentifierName at index { (isEscape ? index - 1 : index) }");
-                else break;
+                break;
             }
             index--;
 
@@ -593,14 +593,14 @@ namespace fastJSON
             // non escaped string
             while (index + run < len)
             {
-                var c = p[index + run++];
+                char c = p[index + run++];
                 if (c == '\\')
                     break;
                 if (c == '\n' || c == '\r') throw new Exception("Illegal newline character in string at index " + index);
                 if (c == '\u2028' || c == '\u2029') break;
                 if (c == quote)//'\"')
                 {
-                    var str = UnsafeSubstring(p, index, run - 1);
+                    string? str = UnsafeSubstring(p, index, run - 1);
                     index += run;
                     return str;
                 }
@@ -609,14 +609,14 @@ namespace fastJSON
             // escaped string
             while (index < len)
             {
-                var c = p[index++];
+                char c = p[index++];
                 if (c == quote)//'"')
                     return s.ToString();
 
                 if (c != '\\')
                 {
                     if (c == '\n' || c == '\r') throw new Exception("Illegal newline character in string at index " + (index - 1));
-                    else if (c == '\u2028') warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2028 in string.");
+                    if (c == '\u2028') warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2028 in string.");
                     else if (c == '\u2029') warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2029 in string.");
                     s.Append(c);
                 }
@@ -765,7 +765,7 @@ namespace fastJSON
             ConsumeToken();
 
             // Need to start back one place because the first digit is also a token and would have been consumed
-            var startIndex = index - 1;
+            int startIndex = index - 1;
             bool dec = false;
             bool dob = false;
             bool run = true;
@@ -778,11 +778,11 @@ namespace fastJSON
                 if (index == _len)
                     break;
 
-                var signedNeg = p[startIndex] == '-';
-                var signed = signedNeg || p[startIndex] == '+';
+                bool signedNeg = p[startIndex] == '-';
+                bool signed = signedNeg || p[startIndex] == '+';
 
-                var c = p[index];
-                var c1 = p[index + 1];
+                char c = p[index];
+                char c1 = p[index + 1];
 
                 if ((!signed && (c == 'x' || c == 'X')) || (signed && (c1 == 'x' || c1 == 'X')))
                 {
@@ -843,7 +843,7 @@ namespace fastJSON
             if (dob || force == 0)
             {
                 string s = UnsafeSubstring(p, startIndex, index - startIndex);
-                var retV = double.Parse(s, NumberFormatInfo.InvariantInfo);
+                double retV = double.Parse(s, NumberFormatInfo.InvariantInfo);
                 if (retV == 0 && s[0] == '-') return -0.0;
                 return retV;
             }
@@ -862,27 +862,25 @@ namespace fastJSON
                 if (retV == 0 && p[startIndex] == '-') return -0.0;
                 return retV;
             }
-            else if ((index - startIndex < 30) || force == 2)
+
+            if ((index - startIndex < 30) || force == 2)
             {
                 string s = UnsafeSubstring(p, startIndex, index - startIndex);
                 decimal retV;
-				try
-				{
+                try
+                {
                     retV = decimal.Parse(s, NumberFormatInfo.InvariantInfo);
                 }
-				catch
-				{
+                catch
+                {
                     force = 0;
                     goto redo;
-				}
+                }
                 if (retV == 0 && s[0] == '-') return -0.0m;
                 return retV;
             }
-			else
-			{
-                force = 2;
-                goto redo;
-			}
+            force = 2;
+            goto redo;
         }
 
         private unsafe object ReadHexNumber(char* p, bool neg)
@@ -977,7 +975,7 @@ namespace fastJSON
 
         private unsafe Token NextToken(char* p)
         {
-            var result = lookAheadToken != Token.None ? lookAheadToken : NextTokenCore(p);
+            Token result = lookAheadToken != Token.None ? lookAheadToken : NextTokenCore(p);
 
             lookAheadToken = Token.None;
 
@@ -989,7 +987,7 @@ namespace fastJSON
             // Skip past whitespace
             do
             {
-                var c = p[index];
+                char c = p[index];
 
                 if (c == '/' && p[index + 1] == '/') // c++ style single line comments
                 {
@@ -1087,7 +1085,8 @@ namespace fastJSON
                         index += 8;
                         return Token.NegInfinity;
                     }
-                    else if (len - index >= 3 &&
+
+                    if (len - index >= 3 &&
                         p[index + 0] == 'N' &&
                         p[index + 1] == 'a' &&
                         p[index + 2] == 'N')
@@ -1110,7 +1109,8 @@ namespace fastJSON
                         index += 8;
                         return Token.PosInfinity;
                     }
-                    else if (len - index >= 3 &&
+
+                    if (len - index >= 3 &&
                         p[index + 0] == 'N' &&
                         p[index + 1] == 'a' &&
                         p[index + 2] == 'N')
@@ -1202,8 +1202,8 @@ namespace fastJSON
             }
 
             //return tok;
-            else
-                throw new Exception("Could not find token at index " + --index + " got '" + p[index] + "'");
+
+            throw new Exception("Could not find token at index " + --index + " got '" + p[index] + "'");
         }
 
         private static unsafe string UnsafeSubstring(char* p, int startIndex, int length)

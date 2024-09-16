@@ -19,7 +19,7 @@ namespace fastJSON
         public static string PrettyPrint(string input, string spaces)
         {
             //_indent = spaces;
-            var output = new StringBuilder();
+            StringBuilder output = new StringBuilder();
             int depth = 0;
             int len = input.Length;
             char[] chars = input.ToCharArray();

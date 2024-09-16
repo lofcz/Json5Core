@@ -40,10 +40,10 @@ namespace fastJSON
 
             if (_params.UsingGlobalTypes && _globalTypes != null && _globalTypes.Count > 0)
             {
-                var sb = new StringBuilder();
+                StringBuilder? sb = new StringBuilder();
                 sb.Append("\"$types\":{");
-                var pendingSeparator = false;
-                foreach (var kv in _globalTypes)
+                bool pendingSeparator = false;
+                foreach (KeyValuePair<string, int> kv in _globalTypes)
                 {
                     if (pendingSeparator) sb.Append(',');
                     pendingSeparator = true;
@@ -172,7 +172,7 @@ namespace fastJSON
 
             write_date_value(dt);
 
-            var ticks = dt.Ticks % TimeSpan.TicksPerSecond;
+            long ticks = dt.Ticks % TimeSpan.TicksPerSecond;
             _output.Append('.');
             _output.Append(ticks.ToString("0000000", NumberFormatInfo.InvariantInfo));
 
@@ -362,7 +362,7 @@ namespace fastJSON
 
         private string GetXmlSchema(DataTable dt)
         {
-            using (var writer = new StringWriter())
+            using (StringWriter? writer = new StringWriter())
             {
                 dt.WriteXmlSchema(writer);
                 return dt.ToString();
@@ -491,7 +491,7 @@ namespace fastJSON
             int c = g.Length;
             for (int ii = 0; ii < c; ii++)
             {
-                var p = g[ii];
+                Getters p = g[ii];
                 if (_params.ShowReadOnlyProperties == false && p.ReadOnly)
                     continue;
                 object o = p.Getter(obj);
@@ -671,9 +671,9 @@ namespace fastJSON
 
             int runIndex = -1;
             int l = s.Length;
-            for (var index = 0; index < l; ++index)
+            for (int index = 0; index < l; ++index)
             {
-                var c = s[index];
+                char c = s[index];
 
                 if (_useEscapedUnicode)
                 {

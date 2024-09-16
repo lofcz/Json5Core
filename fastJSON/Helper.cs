@@ -21,7 +21,7 @@ namespace fastJSON
 
         public static DateTimeOffset CreateDateTimeOffset(int year, int month, int day, int hour, int min, int sec, int milli, int extraTicks, TimeSpan offset)
         {
-            var dt = new DateTimeOffset(year, month, day, hour, min, sec, milli, offset);
+            DateTimeOffset dt = new DateTimeOffset(year, month, day, hour, min, sec, milli, offset);
 
             if (extraTicks > 0)
                 dt += TimeSpan.FromTicks(extraTicks);
@@ -38,7 +38,7 @@ namespace fastJSON
                 oset = (long)v > 0 ? true : false;
             else if (v is string)
             {
-                var s = (string)v;
+                string? s = (string)v;
                 s = s.ToLowerInvariant();
                 if (s == "1" || s == "true" || s == "yes" || s == "on")
                     oset = true;
@@ -56,13 +56,13 @@ namespace fastJSON
                     string s = (string)value;
                     return CreateLong(s, 0, s.Length);
                 }
-                else
-                    throw new Exception("AutoConvertStringToNumbers is disabled for converting string : " + value);
+
+                throw new Exception("AutoConvertStringToNumbers is disabled for converting string : " + value);
             }
-            else if (value is long)
+
+            if (value is long)
                 return (long)value;
-            else
-                return Convert.ToInt64(value);
+            return Convert.ToInt64(value);
         }
 
         public static unsafe long CreateLong(string s, int index, int count)
@@ -256,15 +256,14 @@ namespace fastJSON
         {
             if (s.Length > 30)
                 return new Guid(s);
-            else
-                return new Guid(Convert.FromBase64String(s));
+            return new Guid(Convert.FromBase64String(s));
         }
 
         public static StringDictionary CreateSD(Dictionary<string, object> d)
         {
             StringDictionary nv = new StringDictionary();
 
-            foreach (var o in d)
+            foreach (KeyValuePair<string, object> o in d)
                 nv.Add(o.Key, (string)o.Value);
 
             return nv;
@@ -274,7 +273,7 @@ namespace fastJSON
         {
             NameValueCollection nv = new NameValueCollection();
 
-            foreach (var o in d)
+            foreach (KeyValuePair<string, object> o in d)
                 nv.Add(o.Key, (string)o.Value);
 
             return nv;
@@ -369,10 +368,9 @@ namespace fastJSON
 
             if (UseUTCDateTime == false && utc == false)
                 return new DateTime(year, month, day, hour, min, sec, ms);
-            else if (UseUTCDateTime && utc)
+            if (UseUTCDateTime && utc)
                 return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc);
-            else
-                return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc).ToLocalTime();
+            return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc).ToLocalTime();
         }
 
         //private static readonly char CharNegative = '-';
