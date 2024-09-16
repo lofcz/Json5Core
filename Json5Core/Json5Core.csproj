@@ -4,7 +4,7 @@
     <PropertyGroup>
         <TargetFrameworks>net8.0</TargetFrameworks>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Hamish Arblaster, M. Gholam, Matěj Štágl</Authors>
         <Version>1.0.5</Version>
         <AssemblyName>Json5Core</AssemblyName>
