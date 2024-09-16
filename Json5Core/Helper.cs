@@ -51,7 +51,7 @@ namespace Json5Core
             return oset;
         }
 
-        public static long AutoConv(object value, JSONParameters param)
+        public static long AutoConv(object value, JsonParameters param)
         {
             return value switch
             {

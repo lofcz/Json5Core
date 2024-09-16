@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace Json5Core
 {
-    public sealed class JSONParameters
+    public sealed class JsonParameters
     {
         /// <summary>
         /// Use the optimized fast Dataset Schema format (default = True)
@@ -134,9 +134,9 @@ namespace Json5Core
             //    AllowNonQuotedKeys = true;
         }
 
-        public JSONParameters MakeCopy()
+        public JsonParameters MakeCopy()
         {
-            return new JSONParameters
+            return new JsonParameters
             {
                 DateTimeMilliseconds = DateTimeMilliseconds,
                 EnableAnonymousTypes = EnableAnonymousTypes,
@@ -167,55 +167,81 @@ namespace Json5Core
         }
     }
 
-    public static class JSON
+    public static class Json
     {
         /// <summary>
         /// Globally set-able parameters for controlling the serializer
         /// </summary>
-        public static JSONParameters Parameters = new JSONParameters();
+        public static JsonParameters Parameters = new JsonParameters();
         /// <summary>
         /// Create a formatted json string (beautified) from an object
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static string ToNiceJSON(object obj)
+        public static string ToJsonPretty(object obj)
         {
-            string s = ToJSON(obj, Parameters); // use default params
+            string s = ToJson(obj, Parameters); // use default params
 
             return Beautify(s);
         }
+        
         /// <summary>
         /// Create a formatted json string (beautified) from an object
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public static string ToNiceJSON(object obj, JSONParameters param)
+        public static string ToJsonPretty(object obj, JsonParameters param)
         {
-            string s = ToJSON(obj, param);
+            string s = ToJson(obj, param);
 
             return Beautify(s, param.FormatterIndentSpaces);
         }
+        
         /// <summary>
         /// Create a json representation for an object
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static string ToJSON(object obj)
+        public static string ToJson(object obj)
         {
-            return ToJSON(obj, Parameters);
+            return ToJson(obj, Parameters);
         }
+        
+        /// <summary>
+        /// Serialize given object.
+        /// </summary>
+        /// <param name="obj">Object to serialize</param>
+        /// <param name="formatting">Formatting to use</param>
+        /// <returns></returns>
+        public static string Serialize(object? obj, JsonFormatting formatting = JsonFormatting.None)
+        {
+            return ToJson(obj, Parameters, formatting);
+        }
+
+        /// <summary>
+        /// Serialize given object.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="param"></param>
+        /// <param name="formatting">Formatting to use</param>
+        /// <returns></returns>
+        public static string Serialize(object? obj, JsonParameters param, JsonFormatting formatting = JsonFormatting.None)
+        {
+            return ToJson(obj, param, formatting);
+        }
+
         /// <summary>
         /// Create a json representation for an object with parameter override on this call
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public static string ToJSON(object obj, JSONParameters param)
+        public static string ToJson(object? obj, JsonParameters param, JsonFormatting formatting = JsonFormatting.None)
         {
             param.FixValues();
             param = param.MakeCopy();
-            Type t = null;
+            Type? t = null;
 
             if (obj == null)
                 return "null";
@@ -227,8 +253,11 @@ namespace Json5Core
 
             // FEATURE : enable extensions when you can deserialize anon types
             if (param.EnableAnonymousTypes) { param.UseExtensions = false; param.UsingGlobalTypes = false; }
-            return new JSONSerializer(param).ConvertToJSON(obj);
+            string data = new JSONSerializer(param).ConvertToJSON(obj);
+
+            return formatting is JsonFormatting.Intended ? Beautify(data) : data;
         }
+        
         /// <summary>
         /// Parse a json string and generate a Dictionary&lt;string,object&gt; or List&lt;object&gt; structure
         /// </summary>
@@ -238,12 +267,14 @@ namespace Json5Core
         {
             return new JsonParser(json, true, warnings).Decode(null);
         }
+        
         /// <summary>
         /// Parse a json string and generate a Dictionary&lt;string,object&gt; or List&lt;object&gt; structure
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
         public static object Parse(string json) => Parse(json, null);
+        
         /// <summary>
         /// Create a .net4 dynamic object from the json string
         /// </summary>
@@ -253,6 +284,18 @@ namespace Json5Core
         {
             return new DynamicJson(json);
         }
+        
+        /// <summary>
+        /// Create a typed generic object from the json
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static T Deserialize<T>(string json)
+        {
+            return new deserializer(Parameters).ToObject<T>(json);
+        }
+        
         /// <summary>
         /// Create a typed generic object from the json
         /// </summary>
@@ -263,6 +306,7 @@ namespace Json5Core
         {
             return new deserializer(Parameters).ToObject<T>(json);
         }
+        
         /// <summary>
         /// Create a typed generic object from the json with parameter override on this call
         /// </summary>
@@ -270,10 +314,11 @@ namespace Json5Core
         /// <param name="json"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public static T ToObject<T>(string json, JSONParameters param)
+        public static T ToObject<T>(string json, JsonParameters param)
         {
             return new deserializer(param).ToObject<T>(json);
         }
+        
         /// <summary>
         /// Create an object from the json
         /// </summary>
@@ -283,16 +328,18 @@ namespace Json5Core
         {
             return new deserializer(Parameters).ToObject(json, null);
         }
+        
         /// <summary>
         /// Create an object from the json with parameter override on this call
         /// </summary>
         /// <param name="json"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public static object ToObject(string json, JSONParameters param)
+        public static object ToObject(string json, JsonParameters param)
         {
             return new deserializer(param).ToObject(json, null);
         }
+        
         /// <summary>
         /// Create an object of type from the json
         /// </summary>
@@ -303,6 +350,7 @@ namespace Json5Core
         {
             return new deserializer(Parameters).ToObject(json, type);
         }
+        
         /// <summary>
         /// Create an object of type from the json with parameter override on this call
         /// </summary>
@@ -310,10 +358,11 @@ namespace Json5Core
         /// <param name="type"></param>
         /// <param name="par"></param>
         /// <returns></returns>
-        public static object ToObject(string json, Type type, JSONParameters par)
+        public static object ToObject(string json, Type type, JsonParameters par)
         {
             return new deserializer(par).ToObject(json, type);
         }
+        
         /// <summary>
         /// Fill a given object with the json represenation
         /// </summary>
@@ -325,6 +374,7 @@ namespace Json5Core
             Dictionary<string, object> ht = new JsonParser(json, true, warnings).Decode(input.GetType()) as Dictionary<string, object>;
             return ht == null ? null : new deserializer(Parameters).ParseDictionary(ht, null, input.GetType(), input);
         }
+        
         /// <summary>
         /// Fill a given object with the json represenation
         /// </summary>
@@ -332,6 +382,7 @@ namespace Json5Core
         /// <param name="json"></param>
         /// <returns></returns>
         public static object FillObject(object input, string json) => FillObject(input, json, null);
+        
         /// <summary>
         /// Deep copy an object i.e. clone to a new object
         /// </summary>
@@ -339,8 +390,9 @@ namespace Json5Core
         /// <returns></returns>
         public static object DeepCopy(object obj)
         {
-            return new deserializer(Parameters).ToObject(ToJSON(obj));
+            return new deserializer(Parameters).ToObject(ToJson(obj));
         }
+        
         /// <summary>
         /// 
         /// </summary>
@@ -349,19 +401,20 @@ namespace Json5Core
         /// <returns></returns>
         public static T DeepCopy<T>(T obj)
         {
-            return new deserializer(Parameters).ToObject<T>(ToJSON(obj));
+            return new deserializer(Parameters).ToObject<T>(ToJson(obj));
         }
 
         /// <summary>
-        /// Create a human readable string from the json 
+        /// Create a human-readable string from the json 
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
         public static string Beautify(string input)
         {
-            string? i = new string(' ', JSON.Parameters.FormatterIndentSpaces);
+            string? i = new string(' ', Json.Parameters.FormatterIndentSpaces);
             return Formatter.PrettyPrint(input, i);
         }
+        
         /// <summary>
         /// Create a human-readable string from the json with specified indent spaces
         /// </summary>
@@ -373,6 +426,7 @@ namespace Json5Core
             string i = new string(' ', spaces);
             return Formatter.PrettyPrint(input, i);
         }
+        
         /// <summary>
         /// Register custom type handlers for your own types not natively handled by Json5Core
         /// </summary>
@@ -383,6 +437,7 @@ namespace Json5Core
         {
             Reflection.Instance.RegisterCustomType(type, serializer, deserializer);
         }
+        
         /// <summary>
         /// Clear the internal reflection cache so you can start from new (you will loose performance)
         /// </summary>
@@ -394,15 +449,15 @@ namespace Json5Core
 
     internal class @deserializer
     {
-        public deserializer(JSONParameters param)
+        public deserializer(JsonParameters param)
         {
             _circobj = param.OverrideObjectHashCodeChecking ? new Dictionary<object, int>(10, ReferenceEqualityComparer.Default) : new Dictionary<object, int>();
             param.FixValues();
             _params = param.MakeCopy();
         }
 
-        private JSONParameters _params;
-        private bool _usingglobals = false;
+        private JsonParameters _params;
+        private bool _usingglobals;
         private Dictionary<object, int> _circobj;// = new Dictionary<object, int>();
         private Dictionary<int, object> _cirrev = new Dictionary<int, object>();
 

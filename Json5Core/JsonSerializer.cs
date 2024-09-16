@@ -19,10 +19,10 @@ namespace Json5Core
         int _current_depth = 0;
         private Dictionary<string, int> _globalTypes = new Dictionary<string, int>();
         private Dictionary<object, int> _cirobj;
-        private JSONParameters _params;
+        private JsonParameters _params;
         private bool _useEscapedUnicode = false;
 
-        internal JSONSerializer(JSONParameters param)
+        internal JSONSerializer(JsonParameters param)
         {
             _cirobj = param.OverrideObjectHashCodeChecking ? new Dictionary<object, int>(10, ReferenceEqualityComparer.Default) : new Dictionary<object, int>();
             _params = param;

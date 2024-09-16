@@ -11,7 +11,7 @@ namespace Json5Core
 
         public static string PrettyPrint(string input)
         {
-            return PrettyPrint(input, new string(' ', JSON.Parameters.FormatterIndentSpaces));// "   ");
+            return PrettyPrint(input, new string(' ', Json.Parameters.FormatterIndentSpaces));// "   ");
         }
 
         public static string PrettyPrint(string input, string spaces)

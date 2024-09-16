@@ -13,7 +13,7 @@ namespace Json5Core
 
         public DynamicJson(string json)
         {
-            object parse = JSON.Parse(json);
+            object parse = Json.Parse(json);
 
             if (parse is IDictionary<string, object> objects)
                 _dictionary = objects;
