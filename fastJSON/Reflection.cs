@@ -4,11 +4,8 @@ using System.Reflection.Emit;
 using System.Reflection;
 using System.Collections;
 using System.Text;
-using System.Runtime.Serialization;
 using System.Linq;
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
 using System.Data;
-#endif
 using System.Collections.Specialized;
 
 namespace fastJSON
@@ -31,20 +28,15 @@ namespace fastJSON
         DateTime = 4,
         Enum = 5,
         Guid = 6,
-
         Array = 7,
         ByteArray = 8,
         Dictionary = 9,
         StringKeyDictionary = 10,
         NameValue = 11,
         StringDictionary = 12,
-#if !SILVERLIGHT
         Hashtable = 13,
-#endif
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
         DataSet = 14,
         DataTable = 15,
-#endif
         Custom = 16,
         Unknown = 17,
     }
