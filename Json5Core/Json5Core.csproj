@@ -6,7 +6,7 @@
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Hamish Arblaster, M. Gholam, Matěj Štágl</Authors>
-        <Version>1.0.5</Version>
+        <Version>1.0.7</Version>
         <AssemblyName>Json5Core</AssemblyName>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <LangVersion>9</LangVersion>

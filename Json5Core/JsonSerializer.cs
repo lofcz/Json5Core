@@ -16,13 +16,13 @@ namespace Json5Core
         private StringBuilder _output = new StringBuilder();
         private int _before;
         private int _MAX_DEPTH = 20;
-        int _current_depth = 0;
+        int _current_depth;
         private Dictionary<string, int> _globalTypes = new Dictionary<string, int>();
         private Dictionary<object, int> _cirobj;
-        private JsonParameters _params;
-        private bool _useEscapedUnicode = false;
+        private Json5Parameters _params;
+        private bool _useEscapedUnicode;
 
-        internal JSONSerializer(JsonParameters param)
+        internal JSONSerializer(Json5Parameters param)
         {
             _cirobj = param.OverrideObjectHashCodeChecking ? new Dictionary<object, int>(10, ReferenceEqualityComparer.Default) : new Dictionary<object, int>();
             _params = param;
@@ -429,7 +429,7 @@ namespace Json5Core
             this._output.Append('}');
         }
 
-        bool _TypesWritten = false;
+        bool _TypesWritten;
         private void WriteObject(object obj)
         {
             int i = 0;

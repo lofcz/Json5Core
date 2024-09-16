@@ -88,15 +88,15 @@ namespace Json5Core
         private delegate object CreateObject();
         private delegate object CreateList(int capacity);
 
-        private SafeDictionary<Type, string> _tyname = new SafeDictionary<Type, string>(10);
-        private SafeDictionary<string, Type> _typecache = new SafeDictionary<string, Type>(10);
-        private SafeDictionary<Type, CreateObject> _constrcache = new SafeDictionary<Type, CreateObject>(10);
-        private readonly SafeDictionary<Type, CreateList> _conlistcache = new SafeDictionary<Type, CreateList>(10);
-        private SafeDictionary<Type, Getters[]> _getterscache = new SafeDictionary<Type, Getters[]>(10);
-        private SafeDictionary<string, Dictionary<string, myPropInfo>> _propertycache = new SafeDictionary<string, Dictionary<string, myPropInfo>>(10);
-        private SafeDictionary<Type, Type[]> _genericTypes = new SafeDictionary<Type, Type[]>(10);
-        private SafeDictionary<Type, Type> _genericTypeDef = new SafeDictionary<Type, Type>(10);
-        private static SafeDictionary<short, OpCode> _opCodes;
+        private Json5SafeDictionary<Type, string> _tyname = new Json5SafeDictionary<Type, string>(10);
+        private Json5SafeDictionary<string, Type> _typecache = new Json5SafeDictionary<string, Type>(10);
+        private Json5SafeDictionary<Type, CreateObject> _constrcache = new Json5SafeDictionary<Type, CreateObject>(10);
+        private readonly Json5SafeDictionary<Type, CreateList> _conlistcache = new Json5SafeDictionary<Type, CreateList>(10);
+        private Json5SafeDictionary<Type, Getters[]> _getterscache = new Json5SafeDictionary<Type, Getters[]>(10);
+        private Json5SafeDictionary<string, Dictionary<string, myPropInfo>> _propertycache = new Json5SafeDictionary<string, Dictionary<string, myPropInfo>>(10);
+        private Json5SafeDictionary<Type, Type[]> _genericTypes = new Json5SafeDictionary<Type, Type[]>(10);
+        private Json5SafeDictionary<Type, Type> _genericTypeDef = new Json5SafeDictionary<Type, Type>(10);
+        private static Json5SafeDictionary<short, OpCode> _opCodes;
         private static List<string> _badlistTypes =
         [
             "system.configuration.install.assemblyinstaller",
@@ -111,7 +111,7 @@ namespace Json5Core
         {
             if (_opCodes != null)
                 return _opCodes.TryGetValue(code, out opCode);
-            SafeDictionary<short, OpCode>? dict = new SafeDictionary<short, OpCode>();
+            Json5SafeDictionary<short, OpCode>? dict = new Json5SafeDictionary<short, OpCode>();
             foreach (FieldInfo? fi in typeof(OpCodes).GetFields(BindingFlags.Public | BindingFlags.Static))
             {
                 if (!typeof(OpCode).IsAssignableFrom(fi.FieldType)) continue;
@@ -168,8 +168,8 @@ namespace Json5Core
 
         #region json custom types
         // JSON custom
-        internal SafeDictionary<Type, Serialize> _customSerializer = new SafeDictionary<Type, Serialize>();
-        internal SafeDictionary<Type, Deserialize> _customDeserializer = new SafeDictionary<Type, Deserialize>();
+        internal Json5SafeDictionary<Type, Serialize> _customSerializer = new Json5SafeDictionary<Type, Serialize>();
+        internal Json5SafeDictionary<Type, Deserialize> _customDeserializer = new Json5SafeDictionary<Type, Deserialize>();
 
         internal object CreateCustom(string v, Type type)
         {
@@ -824,18 +824,18 @@ namespace Json5Core
 
         internal void ResetPropertyCache()
         {
-            _propertycache = new SafeDictionary<string, Dictionary<string, myPropInfo>>();
+            _propertycache = new Json5SafeDictionary<string, Dictionary<string, myPropInfo>>();
         }
 
         internal void ClearReflectionCache()
         {
-            _tyname = new SafeDictionary<Type, string>(10);
-            _typecache = new SafeDictionary<string, Type>(10);
-            _constrcache = new SafeDictionary<Type, CreateObject>(10);
-            _getterscache = new SafeDictionary<Type, Getters[]>(10);
-            _propertycache = new SafeDictionary<string, Dictionary<string, myPropInfo>>(10);
-            _genericTypes = new SafeDictionary<Type, Type[]>(10);
-            _genericTypeDef = new SafeDictionary<Type, Type>(10);
+            _tyname = new Json5SafeDictionary<Type, string>(10);
+            _typecache = new Json5SafeDictionary<string, Type>(10);
+            _constrcache = new Json5SafeDictionary<Type, CreateObject>(10);
+            _getterscache = new Json5SafeDictionary<Type, Getters[]>(10);
+            _propertycache = new Json5SafeDictionary<string, Dictionary<string, myPropInfo>>(10);
+            _genericTypes = new Json5SafeDictionary<Type, Type[]>(10);
+            _genericTypeDef = new Json5SafeDictionary<Type, Type>(10);
         }
     }
 }

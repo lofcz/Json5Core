@@ -4,25 +4,25 @@ using System.Runtime.CompilerServices;
 
 namespace Json5Core
 {
-    public class ReferenceEqualityComparer : IEqualityComparer, IEqualityComparer<object>
+    internal class ReferenceEqualityComparer : IEqualityComparer, IEqualityComparer<object>
     {
         public static ReferenceEqualityComparer Default { get; } = new ReferenceEqualityComparer();
-
+        
         public new bool Equals(object x, object y) => x.Equals(y);
         public int GetHashCode(object obj) => RuntimeHelpers.GetHashCode(obj); 
     }
 
-    public sealed class SafeDictionary<TKey, TValue>
+    public sealed class Json5SafeDictionary<TKey, TValue>
     {
         private readonly object _Padlock = new object();
         private readonly Dictionary<TKey, TValue> _Dictionary;
 
-        public SafeDictionary(int capacity)
+        public Json5SafeDictionary(int capacity)
         {
             _Dictionary = new Dictionary<TKey, TValue>(capacity);
         }
 
-        public SafeDictionary()
+        public Json5SafeDictionary()
         {
             _Dictionary = new Dictionary<TKey, TValue>();
         }
@@ -56,8 +56,7 @@ namespace Json5Core
         {
             lock (_Padlock)
             {
-                if (_Dictionary.ContainsKey(key) == false)
-                    _Dictionary.Add(key, value);
+                _Dictionary.TryAdd(key, value);
             }
         }
     }

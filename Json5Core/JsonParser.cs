@@ -65,12 +65,12 @@ namespace Json5Core
         //readonly myStringBuilder s = new myStringBuilder(); 
         Token lookAheadToken = Token.None;
         int index;
-        bool allownonquotedkey = false;
+        bool allownonquotedkey;
         //bool AllowJson5String = false;
-        int _len = 0;
-        SafeDictionary<string, bool>? _lookup;
-        SafeDictionary<Type, bool>? _seen;
-        bool _parseJsonType = false;
+        int _len;
+        Json5SafeDictionary<string, bool>? _lookup;
+        Json5SafeDictionary<Type, bool>? _seen;
+        bool _parseJsonType;
         IList<string> warnings;
 
         internal JsonParser(string json, bool AllowNonQuotedKeys, IList<string> warnings)
@@ -84,8 +84,8 @@ namespace Json5Core
 
         private void SetupLookup()
         {
-            _lookup = new SafeDictionary<string, bool>();
-            _seen = new SafeDictionary<Type, bool>();
+            _lookup = new Json5SafeDictionary<string, bool>();
+            _seen = new Json5SafeDictionary<Type, bool>();
             _lookup.Add("$types", true);
             _lookup.Add("$type", true);
             _lookup.Add("$i", true);
@@ -243,7 +243,7 @@ namespace Json5Core
             return _lookup.TryGetValue(name.ToLowerInvariant(), out bool v);
         }
 
-        bool _parseType = false;
+        bool _parseType;
         private unsafe Dictionary<string, object> ParseObject(char* p)
         {
             Dictionary<string, object> obj = new Dictionary<string, object>();
