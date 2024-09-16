@@ -1039,6 +1039,30 @@ public class tests
         Assert.AreEqual(typeof(Hashtable), o.GetType());
         Assert.AreEqual(typeof(class1), o["dsds"].GetType());
     }
+
+    class ClsWithHashSet
+    {
+        public Dictionary<string, string> Dict { get; set; } = [];
+        public HashSet<string> Set { get; set; }
+    }
+    
+    [Test]
+    public static void HashsetClsTest()
+    {
+        string json = """
+                      {
+                        "Dict": { "prop1": "value1" },
+                        "Set": [ "set1", "set2" ]
+                      }
+                      """;
+
+        ClsWithHashSet? s = Json5.Deserialize<ClsWithHashSet>(json);
+        
+        Assert.NotNull(s);
+        
+        Assert.AreEqual(s.Dict.Count, 1);
+        Assert.AreEqual(s.Set.Count, 2);
+    }
     
     [Test]
     public static void HashsetTest()

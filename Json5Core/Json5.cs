@@ -132,7 +132,7 @@ public static class Json5
         /// <typeparam name="T"></typeparam>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static T Deserialize<T>(string json)
+        public static T? Deserialize<T>(string json)
         {
             return new Deserializer(Parameters).ToObject<T>(json);
         }
@@ -143,7 +143,7 @@ public static class Json5
         /// <typeparam name="T"></typeparam>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static T ToObject<T>(string json)
+        public static T? ToObject<T>(string json)
         {
             return new Deserializer(Parameters).ToObject<T>(json);
         }
@@ -155,7 +155,7 @@ public static class Json5
         /// <param name="json"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public static T ToObject<T>(string json, Json5Parameters param)
+        public static T? ToObject<T>(string json, Json5Parameters param)
         {
             return new Deserializer(param).ToObject<T>(json);
         }

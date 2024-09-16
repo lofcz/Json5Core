@@ -7,8 +7,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);CORE_TEST</DefineConstants>
     <NoWarn>$(NoWarn);CS8981</NoWarn>
-    <LangVersion>9</LangVersion>
+    <LangVersion>preview</LangVersion>
     <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

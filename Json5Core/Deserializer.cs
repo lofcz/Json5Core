@@ -25,7 +25,7 @@ internal class Deserializer
     private Dictionary<object, int> _circobj; // = new Dictionary<object, int>();
     private Dictionary<int, object> _cirrev = new Dictionary<int, object>();
 
-    public T ToObject<T>(string json)
+    public T? ToObject<T>(string json)
     {
         Type t = typeof(T);
         object? o = ToObject(json, t);
@@ -34,15 +34,15 @@ internal class Deserializer
         {
             if ((o as ICollection).Count == 0) // edge case for "[]" -> T[]
             {
-                Type tt = t.GetElementType();
+                Type? tt = t.GetElementType();
                 object oo = Array.CreateInstance(tt, 0);
-                return (T)oo;
+                return (T?)oo;
             }
 
-            return (T)o;
+            return (T?)o;
         }
 
-        return (T)o;
+        return (T?)o;
     }
 
     public object ToObject(string json)
@@ -497,7 +497,12 @@ internal class Deserializer
                         case myPropInfoType.DataTable:
                             oset = CreateDataTable((Dictionary<string, object>)v, globaltypes);
                             break;
-                        // todo: hashset
+                        case myPropInfoType.HashSet:
+                            if (v is List<object> localList)
+                            {
+                                oset = CreateGenericSet(localList, pi.pt, pi.bt, globaltypes);
+                            }
+                            break;
                         case myPropInfoType.Hashtable: // same case as Dictionary
                         case myPropInfoType.Dictionary:
                             oset = CreateDictionary((List<object>)v, pi.pt, pi.GenericTypes, globaltypes);
@@ -581,6 +586,47 @@ internal class Deserializer
 
         return col;
     }
+    
+    private object CreateGenericSet(List<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
+    {
+        if (pt != typeof(object))
+        {
+            // Vytvoříme instanci setu pomocí Reflection.Instance
+            object col = Reflection.Instance.FastCreateInstance(pt);
+        
+            // Získáme metodu Add pomocí reflexe
+            MethodInfo? addMethod = pt.GetMethod("Add");
+            Type? it = Reflection.Instance.GetGenericArguments(pt)[0];
+
+            foreach (object ob in data)
+            {
+                object item;
+                switch (ob)
+                {
+                    case IDictionary:
+                        item = ParseDictionary((Dictionary<string, object>)ob, globalTypes, it, null);
+                        break;
+                    case List<object> list when bt.IsGenericType():
+                        item = list;
+                        break;
+                    case List<object> list:
+                        item = list.ToArray();
+                        break;
+                    default:
+                        item = ChangeType(ob, it);
+                        break;
+                }
+                // Voláme metodu Add pomocí reflexe
+                addMethod?.Invoke(col, [item]);
+            }
+
+            return col;
+        }
+
+        // Pokud pt je object, vracíme HashSet<object>
+        return new HashSet<object>(data);
+    }
+
 
     private object CreateGenericList(List<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
     {
