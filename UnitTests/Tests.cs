@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using NUnit.Framework;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Threading;
 using Json5Core;
 using System.Collections.Specialized;
@@ -1044,6 +1045,58 @@ public class tests
     {
         public Dictionary<string, string> Dict { get; set; } = [];
         public HashSet<string> Set { get; set; }
+    }
+    
+    class ClsWithHashSetConcurrent
+    {
+        public ConcurrentDictionary<string, string> Dict { get; set; } = [];
+        public HashSet<string> Set { get; set; }
+    }
+
+    class MySet<T> : HashSet<T>
+    {
+        
+    }
+    
+    class ClsWithHashSetCustom
+    {
+        public ConcurrentDictionary<string, string> Dict { get; set; } = [];
+        public MySet<string> Set { get; set; }
+    }
+    
+    [Test]
+    public static void CustomSetClsTest()
+    {
+        string json = """
+                      {
+                        "Dict": { "prop1": "value1" },
+                        "Set": [ "set1", "set2" ]
+                      }
+                      """;
+
+        ClsWithHashSetCustom? s = Json5.Deserialize<ClsWithHashSetCustom>(json);
+        
+        Assert.NotNull(s);
+        Assert.AreEqual(s.Dict.Count, 1);
+        Assert.AreEqual(s.Set.Count, 2);
+    }
+    
+    [Test]
+    public static void ConcurrentDictionaryClsTest()
+    {
+        string json = """
+                      {
+                        "Dict": { "prop1": "value1" },
+                        "Set": [ "set1", "set2" ]
+                      }
+                      """;
+
+        ClsWithHashSetConcurrent? s = Json5.Deserialize<ClsWithHashSetConcurrent>(json);
+        
+        Assert.NotNull(s);
+        Assert.AreEqual(s.Dict.GetType(), typeof(ConcurrentDictionary<string, string>));
+        Assert.AreEqual(s.Dict.Count, 1);
+        Assert.AreEqual(s.Set.Count, 2);
     }
     
     [Test]

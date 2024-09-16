@@ -591,10 +591,8 @@ internal class Deserializer
     {
         if (pt != typeof(object))
         {
-            // Vytvoříme instanci setu pomocí Reflection.Instance
             object col = Reflection.Instance.FastCreateInstance(pt);
-        
-            // Získáme metodu Add pomocí reflexe
+            
             MethodInfo? addMethod = pt.GetMethod("Add");
             Type? it = Reflection.Instance.GetGenericArguments(pt)[0];
 
@@ -616,14 +614,13 @@ internal class Deserializer
                         item = ChangeType(ob, it);
                         break;
                 }
-                // Voláme metodu Add pomocí reflexe
+
                 addMethod?.Invoke(col, [item]);
             }
 
             return col;
         }
-
-        // Pokud pt je object, vracíme HashSet<object>
+        
         return new HashSet<object>(data);
     }
 
