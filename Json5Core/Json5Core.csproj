@@ -18,7 +18,7 @@
 		<Title>Json5Core</Title>
 		<Description>Smallest, fastest polymorphic JSON serializer for .NET Core</Description>
 		<Copyright>Matěj Štágl</Copyright>
-		<PackageProjectUrl>https://github.com/lofcz/fastjson5</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/lofcz/Json5Core</PackageProjectUrl>
 		<PackageTags>json5</PackageTags>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
