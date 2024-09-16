@@ -1,0 +1,27 @@
+﻿<Project>
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+    
+    <PropertyGroup>
+        <TargetFrameworks>net8.0</TargetFrameworks>
+        <CheckEolTargetFramework>false</CheckEolTargetFramework>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <Authors>Hamish Arblaster, M. Gholam, Matěj Štágl</Authors>
+        <Version>1.0.4-2.4.0.5</Version>
+        <AssemblyName>Json5Core</AssemblyName>
+        <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+        <LangVersion>9</LangVersion>
+        <LangVersion>preview</LangVersion>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591;1573</NoWarn>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
+		<DefineConstants>TRACE;DEBUG;</DefineConstants>
+        <Optimize>false</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <Optimize>true</Optimize>
+    </PropertyGroup>
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

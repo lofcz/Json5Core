@@ -4,7 +4,7 @@ using System.Data;
 using NUnit.Framework;
 using System.Collections;
 using System.Threading;
-using fastJSON;
+using Json5Core;
 using System.Collections.Specialized;
 using System.Reflection.Emit;
 using System.Linq.Expressions;
@@ -58,31 +58,26 @@ public class tests
         public bool isNew { get; set; }
         public string laststring { get; set; }
         public Gender gender { get; set; }
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
 		public DataSet dataset { get; set; }
-#endif
-#if !SILVERLIGHT
-        public Hashtable hash { get; set; }
-#endif
+        public Hashtable hash { get; set; } 
 		public Dictionary<string, baseclass> stringDictionary { get; set; }
         public Dictionary<baseclass, baseclass> objectDictionary { get; set; }
         public Dictionary<int, baseclass> intDictionary { get; set; }
         public Guid? nullableGuid { get; set; }
         public decimal? nullableDecimal { get; set; }
         public double? nullableDouble { get; set; }
-
         public baseclass[] arrayType { get; set; }
         public byte[] bytes { get; set; }
         public int[] intarray { get; set; }
-
     }
 
     public static colclass CreateObject(bool exotic, bool dataset)
     {
-        colclass c = new colclass();
-
-        c.booleanValue = true;
-        c.ordinaryDecimal = 3;
+        colclass c = new colclass
+        {
+            booleanValue = true,
+            ordinaryDecimal = 3
+        };
 
         if (exotic)
         {
@@ -269,7 +264,7 @@ public class tests
 #endif
     public static void setup()
     {
-        fastJSON.JSON.Parameters = new JSONParameters() { UseExtensions = true };
+        Json5Core.JSON.Parameters = new JSONParameters() { UseExtensions = true };
         JSON.Parameters.FixValues();
     }
 
@@ -414,7 +409,7 @@ public class tests
         Dictionary<string, Retclass> r = new Dictionary<string, Retclass>();
         r.Add("11", new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
         r.Add("12", new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-        string s = JSON.ToJSON(r, new fastJSON.JSONParameters { UseExtensions = false });
+        string s = JSON.ToJSON(r, new Json5Core.JSONParameters { UseExtensions = false });
         Console.WriteLine(JSON.Beautify(s));
         Dictionary<string, Retclass> o = JSON.ToObject<Dictionary<string, Retclass>>(s);
         Assert.AreEqual(2, o.Count);
@@ -438,7 +433,7 @@ public class tests
         Dictionary<int, Retclass> r = new Dictionary<int, Retclass>();
         r.Add(11, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
         r.Add(12, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-        string s = JSON.ToJSON(r, new fastJSON.JSONParameters { UseExtensions = false });
+        string s = JSON.ToJSON(r, new Json5Core.JSONParameters { UseExtensions = false });
         Console.WriteLine(JSON.Beautify(s));
         Dictionary<int, Retclass> o = JSON.ToObject<Dictionary<int, Retclass>>(s);
         Assert.AreEqual(2, o.Count);
@@ -462,7 +457,7 @@ public class tests
         Dictionary<Retstruct, Retclass> r = new Dictionary<Retstruct, Retclass>();
         r.Add(new Retstruct { Field1 = "111", Field2 = 1, date = DateTime.Now }, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
         r.Add(new Retstruct { Field1 = "222", Field2 = 2, date = DateTime.Now }, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-        string s = JSON.ToJSON(r, new fastJSON.JSONParameters { UseExtensions = false });
+        string s = JSON.ToJSON(r, new Json5Core.JSONParameters { UseExtensions = false });
         Console.WriteLine(JSON.Beautify(s));
         Dictionary<Retstruct, Retclass> o = JSON.ToObject<Dictionary<Retstruct, Retclass>>(s);
         Assert.AreEqual(2, o.Count);
@@ -486,7 +481,7 @@ public class tests
         List<Retclass> r = new List<Retclass>();
         r.Add(new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
         r.Add(new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now });
-        string s = JSON.ToJSON(r, new fastJSON.JSONParameters { UseExtensions = false });
+        string s = JSON.ToJSON(r, new Json5Core.JSONParameters { UseExtensions = false });
         Console.WriteLine(JSON.Beautify(s));
         List<Retclass> o = JSON.ToObject<List<Retclass>>(s);
         Assert.AreEqual(2, o.Count);
@@ -537,7 +532,7 @@ public class tests
         ne.dic.Add("hello", new class1("asda", "asdas", Guid.NewGuid()));
         ne.objs = new baseclass[] { new class1("a", "1", Guid.NewGuid()), new class2("b", "2", "desc") };
 
-        string str = JSON.ToJSON(ne, new fastJSON.JSONParameters { UseExtensions = false, UsingGlobalTypes = false });
+        string str = JSON.ToJSON(ne, new Json5Core.JSONParameters { UseExtensions = false, UsingGlobalTypes = false });
         string strr = JSON.Beautify(str);
         Console.WriteLine(strr);
         object dic = JSON.Parse(str);
@@ -560,7 +555,7 @@ public class tests
     [Test]
     public static void Speed_Test_Deserialize()
     {
-        Console.Write("fastjson deserialize");
+        Console.Write("Json5Core deserialize");
         JSON.Parameters = new JSONParameters() { UseExtensions = true };
         colclass c = CreateObject(false, false);
         double t = 0;
@@ -585,9 +580,9 @@ public class tests
     [Test]
     public static void Speed_Test_Serialize()
     {
-        Console.Write("fastjson serialize");
+        Console.Write("Json5Core serialize");
         JSON.Parameters = new JSONParameters() { UseExtensions = true };
-        //fastJSON.JSON.Parameters.UsingGlobalTypes = false;
+        //Json5Core.JSON.Parameters.UsingGlobalTypes = false;
         colclass c = CreateObject(false, false);
         double t = 0;
         Stopwatch stopwatch = new Stopwatch();
@@ -632,7 +627,7 @@ public class tests
     [Test]
     public static void DisableExtensions()
     {
-        JSONParameters p = new fastJSON.JSONParameters { UseExtensions = false, SerializeNullValues = false };
+        JSONParameters p = new Json5Core.JSONParameters { UseExtensions = false, SerializeNullValues = false };
         string s = JSON.ToJSON(new Retclass { date = DateTime.Now, Name = "aaaaaaa" }, p);
         Console.WriteLine(JSON.Beautify(s));
         Retclass o = JSON.ToObject<Retclass>(s);
@@ -917,7 +912,7 @@ public class tests
     public static void GetDynamicMemberNamesTests()
     {
         string s = "{\"Name\":\"aaaaaa\",\"Age\":10,\"dob\":\"2000-01-01 00:00:00Z\",\"inner\":{\"prop\":30},\"arr\":[1,{\"a\":2},3,4,5,6]}";
-        dynamic d = fastJSON.JSON.ToDynamic(s);
+        dynamic d = Json5Core.JSON.ToDynamic(s);
         Assert.AreEqual(5, d.GetDynamicMemberNames().Count);
         Assert.AreEqual(6, d.arr.Count);
         Assert.AreEqual("aaaaaa", d["Name"]);
@@ -1425,9 +1420,9 @@ public class tests
     //{
     //    var e = new Exception("hello");
 
-    //    var s = fastJSON.JSON.ToJSON(e);
+    //    var s = Json5Core.JSON.ToJSON(e);
     //    Console.WriteLine(s);
-    //    var o = fastJSON.JSON.ToObject(s);
+    //    var o = Json5Core.JSON.ToObject(s);
     //    Assert.AreEqual("hello", (o as Exception).Message);
     //}
     //public class ilistclass
@@ -1444,9 +1439,9 @@ public class tests
     //    i.list = new List<colclass>();
     //    i.list.Add(new colclass() { gender = Gender.Female, date = DateTime.Now, isNew = true });
 
-    //    var s = fastJSON.JSON.ToJSON(i);
+    //    var s = Json5Core.JSON.ToJSON(i);
     //    Console.WriteLine(s);
-    //    var o = fastJSON.JSON.ToObject(s);
+    //    var o = Json5Core.JSON.ToObject(s);
     //}
 
 
@@ -1454,7 +1449,7 @@ public class tests
     //public static void listdic()
     //{ 
     //    string s = @"[{""1"":""a""},{""2"":""b""}]";
-    //    var o = fastJSON.JSON.ToDynamic(s);// ToObject<List<Dictionary<string, object>>>(s);
+    //    var o = Json5Core.JSON.ToDynamic(s);// ToObject<List<Dictionary<string, object>>>(s);
     //    var d = o[0].Count;
     //    Console.WriteLine(d.ToString());
     //}
@@ -1776,7 +1771,7 @@ public class tests
     public static void exotic_deserialize()
     {
         Console.WriteLine();
-        Console.Write("fastjson deserialize");
+        Console.Write("Json5Core deserialize");
         colclass c = CreateObject(true, true);
         Stopwatch stopwatch = new Stopwatch();
         for (int pp = 0; pp < fivetimes; pp++)
@@ -1800,7 +1795,7 @@ public class tests
     public static void exotic_serialize()
     {
         Console.WriteLine();
-        Console.Write("fastjson serialize");
+        Console.Write("Json5Core serialize");
         colclass c = CreateObject(true, true);
         Stopwatch stopwatch = new Stopwatch();
         for (int pp = 0; pp < fivetimes; pp++)
@@ -1820,7 +1815,7 @@ public class tests
     public static void BigData()
     {
         Console.WriteLine();
-        Console.Write("fastjson bigdata serialize");
+        Console.Write("Json5Core bigdata serialize");
         colclass c = CreateBigdata();
         Console.WriteLine("\r\ntest obj created");
         double t = 0;
@@ -2505,7 +2500,7 @@ public class tests
         d = JSON.ToObject<DateTimeOffset>(s);
         Assert.AreEqual(dt.ToUniversalTime().ToString("O"), d.ToUniversalTime().ToString("O"));
 
-        // previous fastJSON serialization format for DateTimeOffset. Millisecond resolution only.
+        // previous Json5Core serialization format for DateTimeOffset. Millisecond resolution only.
         s = '"' + dt.ToString("yyyy-MM-ddTHH:mm:ss.fff zzz") + '"';
         Console.WriteLine(s);
         DateTimeOffset ld = JSON.ToObject<DateTimeOffset>(s);
@@ -2663,7 +2658,7 @@ public class tests
         Console.WriteLine();
         Console.WriteLine(jsonstr);
 
-        Dictionary<string, List<AC>> dictList2 = fastJSON.JSON.ToObject<Dictionary<string, List<AC>>>(jsonstr);
+        Dictionary<string, List<AC>> dictList2 = Json5Core.JSON.ToObject<Dictionary<string, List<AC>>>(jsonstr);
 
         Assert.True(dictList2["P"].Count == 2);
         Assert.True(dictList2["P"][0].GetType() == typeof(AC));
@@ -2704,14 +2699,14 @@ public class tests
         [System.Runtime.Serialization.DataMember(Name = "prop")]
         public string MyProperty;
         //[System.Runtime.Serialization.DataMember(Name = "id")]
-        [fastJSON.DataMember(Name = "id")]
+        [Json5Core.DataMember(Name = "id")]
         public int docid;
     }
 
     public class TestObj
     {
 
-        [fastJSON.DataMember(Name = "D")] 
+        [Json5Core.DataMember(Name = "D")] 
         public int SomeData { get; set; } = -1;
     }
 
@@ -2720,12 +2715,12 @@ public class tests
     {
         string s = "{\"prop\":\"Date\",\"id\":42}";
         Console.WriteLine(s);
-        dmember o = fastJSON.JSON.ToObject<dmember>(s);
+        dmember o = Json5Core.JSON.ToObject<dmember>(s);
 
         Assert.AreEqual(42, o.docid);
         Assert.AreEqual("Date", o.MyProperty);
 
-        string ss = fastJSON.JSON.ToJSON(o, new JSONParameters { UseExtensions = false });
+        string ss = Json5Core.JSON.ToJSON(o, new JSONParameters { UseExtensions = false });
         Console.WriteLine(ss);
         Assert.AreEqual(s, ss);
 
@@ -2738,10 +2733,10 @@ public class tests
     {
         string t = "test\0test";
         Console.WriteLine(t);
-        string s = fastJSON.JSON.ToJSON(t, new JSONParameters { UseEscapedUnicode = false, UseExtensions = true });
+        string s = Json5Core.JSON.ToJSON(t, new JSONParameters { UseEscapedUnicode = false, UseExtensions = true });
         Assert.True(s.Contains("\\0"));
         Console.WriteLine(s);
-        string o = fastJSON.JSON.ToObject<string>(s);
+        string o = Json5Core.JSON.ToObject<string>(s);
         Assert.True(o.Contains("\0"));
         Console.WriteLine("" + o);
     }
@@ -2869,7 +2864,7 @@ public class tests
     public class TestData
     {
         [System.Runtime.Serialization.DataMember(Name = "foo")]
-        //[fastJSON.DataMember(Name = "foo")]
+        //[Json5Core.DataMember(Name = "foo")]
         public string Foo { get; set; }
 
         //[System.Runtime.Serialization.DataMember(Name = "bar")]
@@ -3075,11 +3070,11 @@ public class tests
         testObject.Items.Add(new Item { Id = 1, Data = "Item 1" });
         testObject.Items.Add(new Item { Id = 2, Data = "Item 2" });
 
-        string jsonData = fastJSON.JSON.ToNiceJSON(testObject);
+        string jsonData = Json5Core.JSON.ToNiceJSON(testObject);
         Console.WriteLine(jsonData);
 
         TestObject copyObject = new TestObject();
-        fastJSON.JSON.FillObject(copyObject, jsonData);
+        Json5Core.JSON.FillObject(copyObject, jsonData);
     }
 
     [Test]

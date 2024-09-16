@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net8.0-windows</TargetFrameworks>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <IsPackable>false</IsPackable>
@@ -9,6 +8,7 @@
     <DefineConstants>$(DefineConstants);CORE_TEST</DefineConstants>
     <NoWarn>$(NoWarn);CS8981</NoWarn>
     <LangVersion>9</LangVersion>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\fastJSONcore\fastJSON.csproj" />
+    <ProjectReference Include="..\Json5Core\Json5Core.csproj" />
   </ItemGroup>
 
 </Project>
