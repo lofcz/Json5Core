@@ -14,7 +14,6 @@ namespace Json5Core
     internal sealed class JSONSerializer
     {
         private StringBuilder _output = new StringBuilder();
-        //private StringBuilder _before = new StringBuilder();
         private int _before;
         private int _MAX_DEPTH = 20;
         int _current_depth = 0;
@@ -25,10 +24,7 @@ namespace Json5Core
 
         internal JSONSerializer(JSONParameters param)
         {
-            if (param.OverrideObjectHashCodeChecking)
-                _cirobj = new Dictionary<object, int>(10, ReferenceEqualityComparer.Default);
-            else
-                _cirobj = new Dictionary<object, int>();
+            _cirobj = param.OverrideObjectHashCodeChecking ? new Dictionary<object, int>(10, ReferenceEqualityComparer.Default) : new Dictionary<object, int>();
             _params = param;
             _useEscapedUnicode = _params.UseEscapedUnicode;
             _MAX_DEPTH = _params.SerializerMaxDepth;
@@ -61,110 +57,127 @@ namespace Json5Core
 
         private void WriteValue(object obj)
         {
-            if (obj == null || obj is DBNull)
-                _output.Append("null");
-
-            else if (obj is string || obj is char)
-                WriteString(obj.ToString());
-
-            else if (obj is Guid)
-                WriteGuid((Guid)obj);
-
-            else if (obj is bool)
-                _output.Append(((bool)obj) ? "true" : "false"); // conform to standard
-
-            else if (
-                obj is int || obj is long ||
-                obj is byte || obj is short ||
-                obj is sbyte || obj is ushort ||
-                obj is uint || obj is ulong
-            )
-                _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
-
-            else if (obj is decimal decimalNumber)
+            switch (obj)
             {
-                if (decimalNumber == 0.0m) _output.Append((decimal.GetBits(decimalNumber)[3] & -2147483648) != -2147483648 ? "0" : "-0");
-                else _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
-            }
-
-            else if (obj is double)
-            {
-                double d = (double)obj;
-                if (double.IsNaN(d))
-                    _output.Append("NaN");
-                else if (double.IsInfinity(d))
-                    _output.Append(d > 0 ? "Infinity" : "-Infinity");
-                else if (d == 0)
-                    _output.Append((BitConverter.GetBytes(d)[BitConverter.IsLittleEndian ? 7 : 0] & 128) == 0 ? "0" : "-0");
-                else
-                    _output.Append(d.ToString("R", NumberFormatInfo.InvariantInfo));
-            }
-            else if (obj is float f)
-            {
-                if (float.IsNaN(f))
-                    _output.Append("NaN");
-                else if (float.IsInfinity(f))
-                    _output.Append(f > 0 ? "Infinity" : "-Infinity");
-                else if (f == 0)
-                    _output.Append((BitConverter.GetBytes(f)[BitConverter.IsLittleEndian ? 3 : 0] & 128) == 0 ? "0" : "-0");
-                else
-                    _output.Append(f.ToString("R", NumberFormatInfo.InvariantInfo));
-            }
-
-            else if (obj is DateTime time)
-                WriteDateTime(time);
-
-            else if (obj is DateTimeOffset offset)
-                WriteDateTimeOffset(offset);
-
-            else if (obj is TimeSpan span)
-                _output.Append(span.Ticks);
-
-            else switch (_params.KVStyleStringDictionary)
-            {
-                //#if NET4
-                case false when obj is IEnumerable<KeyValuePair<string, object>> pairs:
-                    WriteStringDictionary(pairs);
+                case null:
+                case DBNull:
+                    _output.Append("null");
                     break;
-                //#endif
-                case false when obj is IDictionary dictionary &&
-                                dictionary.GetType().IsGenericType() && Reflection.Instance.GetGenericArguments(dictionary.GetType())[0] == typeof(string):
-                    WriteStringDictionary(dictionary);
+                case string:
+                case char:
+                    WriteString(obj.ToString());
+                    break;
+                case Guid guid:
+                    WriteGuid(guid);
+                    break;
+                case bool b:
+                    _output.Append(b ? "true" : "false"); // conform to standard
+                    break;
+                case int:
+                case long:
+                case byte:
+                case short:
+                case sbyte:
+                case ushort:
+                case uint:
+                case ulong:
+                    _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
+                    break;
+                case decimal decimalNumber when decimalNumber == 0.0m:
+                    _output.Append((decimal.GetBits(decimalNumber)[3] & -2147483648) != -2147483648 ? "0" : "-0");
+                    break;
+                case decimal decimalNumber:
+                    _output.Append(decimalNumber.ToString(NumberFormatInfo.InvariantInfo));
+                    break;
+                case double d1:
+                {
+                    double d = d1;
+                    if (double.IsNaN(d))
+                        _output.Append("NaN");
+                    else if (double.IsInfinity(d))
+                        _output.Append(d > 0 ? "Infinity" : "-Infinity");
+                    else if (d == 0)
+                        _output.Append((BitConverter.GetBytes(d)[BitConverter.IsLittleEndian ? 7 : 0] & 128) == 0 ? "0" : "-0");
+                    else
+                        _output.Append(d.ToString("R", NumberFormatInfo.InvariantInfo));
+                    break;
+                }
+                case float f:
+                {
+                    float d = f;
+                    if (float.IsNaN(d))
+                        _output.Append("NaN");
+                    else if (float.IsInfinity(d))
+                        _output.Append(d > 0 ? "Infinity" : "-Infinity");
+                    else if (d == 0)
+                        _output.Append((BitConverter.GetBytes(d)[BitConverter.IsLittleEndian ? 3 : 0] & 128) == 0 ? "0" : "-0");
+                    else
+                        _output.Append(d.ToString("R", NumberFormatInfo.InvariantInfo));
+                    break;
+                }
+                case DateTime time:
+                    WriteDateTime(time);
+                    break;
+                case DateTimeOffset offset:
+                    WriteDateTimeOffset(offset);
+                    break;
+                case TimeSpan span:
+                    _output.Append(span.Ticks);
                     break;
                 default:
                 {
-                    switch (obj)
+                    switch (_params.KVStyleStringDictionary)
                     {
-                        case IDictionary dictionary:
-                            WriteDictionary(dictionary);
+                        case false when
+                            obj is IEnumerable<KeyValuePair<string, object>> pairs:
+                            WriteStringDictionary(pairs);
                             break;
-                        case byte[] bytes:
-                            WriteBytes(bytes);
-                            break;
-                        case StringDictionary dictionary:
-                            WriteSD(dictionary);
-                            break;
-                        case NameValueCollection collection:
-                            WriteNV(collection);
-                            break;
-                        case Array array:
-                            WriteArrayRanked(array);
-                            break;
-                        case IEnumerable enumerable:
-                            WriteArray(enumerable);
-                            break;
-                        case Enum @enum:
-                            WriteEnum(@enum);
+                        case false when obj is IDictionary dictionary &&
+                                        dictionary.GetType().IsGenericType() && Reflection.Instance.GetGenericArguments(dictionary.GetType())[0] == typeof(string):
+                            WriteStringDictionary(dictionary);
                             break;
                         default:
-                        {
-                            if (Reflection.Instance.IsTypeRegistered(obj.GetType()))
-                                WriteCustom(obj);
+                            switch (obj)
+                            {
+                                case IDictionary dictionary1:
+                                    WriteDictionary(dictionary1);
+                                    break;
+                                case DataSet set:
+                                    WriteDataset(set);
+                                    break;
+                                case DataTable table:
+                                    WriteDataTable(table);
+                                    break;
+                                case byte[] bytes:
+                                    WriteBytes(bytes);
+                                    break;
+                                case StringDictionary stringDictionary:
+                                    WriteSD(stringDictionary);
+                                    break;
+                                case NameValueCollection collection:
+                                    WriteNV(collection);
+                                    break;
+                                case Array array:
+                                    WriteArrayRanked(array);
+                                    break;
+                                case IEnumerable enumerable:
+                                    WriteArray(enumerable);
+                                    break;
+                                case Enum @enum:
+                                    WriteEnum(@enum);
+                                    break;
+                                default:
+                                {
+                                    if (Reflection.Instance.IsTypeRegistered(obj.GetType()))
+                                        WriteCustom(obj);
 
-                            else
-                                WriteObject(obj);
+                                    else
+                                        WriteObject(obj);
+                                    break;
+                                }
+                            }
+
                             break;
-                        }
                     }
 
                     break;
@@ -265,7 +278,7 @@ namespace Json5Core
 
         private void WriteBytes(byte[] bytes)
         {
-			WriteStringFast(Convert.ToBase64String(bytes, 0, bytes.Length));
+            WriteStringFast(Convert.ToBase64String(bytes, 0, bytes.Length, Base64FormattingOptions.None));
         }
 
         private void WriteDateTime(DateTime dateTime)
@@ -305,10 +318,122 @@ namespace Json5Core
             _output.Append(dt.Second.ToString("00", NumberFormatInfo.InvariantInfo));
         }
 
+
+        private DatasetSchema GetSchema(DataTable ds)
+        {
+            if (ds == null) return null;
+
+            DatasetSchema m = new DatasetSchema();
+            m.Info = new List<string>();
+            m.Name = ds.TableName;
+
+            foreach (DataColumn c in ds.Columns)
+            {
+                m.Info.Add(ds.TableName);
+                m.Info.Add(c.ColumnName);
+                m.Info.Add(_params.FullyQualifiedDataSetSchema ? c.DataType.AssemblyQualifiedName : c.DataType.ToString());
+            }
+            // FEATURE : serialize relations and constraints here
+
+            return m;
+        }
+
+        private DatasetSchema GetSchema(DataSet ds)
+        {
+            if (ds == null) return null;
+
+            DatasetSchema m = new DatasetSchema();
+            m.Info = new List<string>();
+            m.Name = ds.DataSetName;
+
+            foreach (DataTable t in ds.Tables)
+            {
+                foreach (DataColumn c in t.Columns)
+                {
+                    m.Info.Add(t.TableName);
+                    m.Info.Add(c.ColumnName);
+                    m.Info.Add(_params.FullyQualifiedDataSetSchema ? c.DataType.AssemblyQualifiedName : c.DataType.ToString());
+                }
+            }
+            // FEATURE : serialize relations and constraints here
+
+            return m;
+        }
+
+        private string GetXmlSchema(DataTable dt)
+        {
+            using (StringWriter? writer = new StringWriter())
+            {
+                dt.WriteXmlSchema(writer);
+                return dt.ToString();
+            }
+        }
+
+        private void WriteDataset(DataSet ds)
+        {
+            _output.Append('{');
+            if (_params.UseExtensions)
+            {
+                WritePair("$schema", _params.UseOptimizedDatasetSchema ? (object)GetSchema(ds) : ds.GetXmlSchema());
+                _output.Append(',');
+            }
+            bool tablesep = false;
+            foreach (DataTable table in ds.Tables)
+            {
+                if (tablesep) _output.Append(',');
+                tablesep = true;
+                WriteDataTableData(table);
+            }
+            // end dataset
+            _output.Append('}');
+        }
+
+        private void WriteDataTableData(DataTable table)
+        {
+            _output.Append('\"');
+            _output.Append(table.TableName);
+            _output.Append("\":[");
+            DataColumnCollection cols = table.Columns;
+            bool rowseparator = false;
+            foreach (DataRow row in table.Rows)
+            {   
+                if (rowseparator) _output.Append(',');
+                rowseparator = true;
+                _output.Append('[');
+
+                bool pendingSeperator = false;
+                foreach (DataColumn column in cols)
+                {
+                    if (pendingSeperator) _output.Append(',');
+                    WriteValue(row[column]);
+                    pendingSeperator = true;
+                }
+                _output.Append(']');
+            }
+
+            _output.Append(']');
+        }
+
+        void WriteDataTable(DataTable dt)
+        {
+            this._output.Append('{');
+            if (_params.UseExtensions)
+            {
+                this.WritePair("$schema", _params.UseOptimizedDatasetSchema ? (object)this.GetSchema(dt) : this.GetXmlSchema(dt));
+                this._output.Append(',');
+            }
+
+            WriteDataTableData(dt);
+
+            // end datatable
+            this._output.Append('}');
+        }
+
         bool _TypesWritten = false;
         private void WriteObject(object obj)
         {
-            if (_cirobj.TryGetValue(obj, out int i) == false)
+            int i = 0;
+            if (_cirobj.TryGetValue(obj, out i) == false)
                 _cirobj.Add(obj, _cirobj.Count + 1);
             else
             {
