@@ -1,13 +1,9 @@
-# fastJSON5
+[![NuGet](https://img.shields.io/nuget/v/Json5Core.svg)](https://www.nuget.org/packages/Json5Core/latest)
 
-Very fast, conformant, and polymorphic JSON5 serializer.
+# Json5Core
 
-| Package Name                   | Release (NuGet) |
-|--------------------------------|-----------------|
-| `Json5Core`         | [![NuGet](https://img.shields.io/nuget/v/Json5Core.svg)](https://www.nuget.org/packages/Json5Core/latest)
-
-The spiritual successor to [fastJSON5] designed for .NET Core. Faster, less `unsafe` parts (with plans to completely remove all unsafe blocks), supports features such as `HashSet<>` out of the box.
-
+The spiritual successor to [fastJSON5](https://github.com/hamarb123/fastJSON5) designed for .NET Core. Fast, conformant, and polymorphic.  
+With fewer `unsafe` parts (with plans to completely remove all unsafe blocks), support for modern collections such as `HashSet<>` out of the box, nullability annotations, familiar API and more.
 
 ## Usage
 
