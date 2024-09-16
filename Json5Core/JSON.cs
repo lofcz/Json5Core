@@ -5,7 +5,9 @@ using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 
 namespace Json5Core
 {
@@ -500,9 +502,8 @@ namespace Json5Core
         private object RootSet(List<object> o, Type type)
         {
             Type elementType = type.GetGenericArguments()[0];
-            Type setType = typeof(HashSet<>).MakeGenericType(elementType);
             Type concreteSetType;
-            
+    
             if (type.IsInterface && type.GetGenericTypeDefinition() == typeof(ISet<>))
             {
                 concreteSetType = typeof(HashSet<>).MakeGenericType(elementType);
@@ -511,26 +512,19 @@ namespace Json5Core
             {
                 concreteSetType = type;
             }
-            
+    
             object set = Reflection.Instance.FastCreateInstance(concreteSetType);
-            MethodInfo? addMethod = setType.GetMethod("Add");
+            MethodInfo? addMethod = concreteSetType.GetMethod("Add");
 
-            foreach (var item in o)
+            foreach (object item in o)
             {
-                object val;
-
-                if (item is Dictionary<string, object> dict)
-                    val = ParseDictionary(dict, null, elementType, null);
-                else if (item != null && !elementType.IsInstanceOfType(item))
-                    val = Convert.ChangeType(item, elementType);
-                else
-                    val = item;
-                
+                object val = ToObject(JsonSerializer.Serialize(item), elementType, new List<string>());
                 addMethod?.Invoke(set, [val]);
             }
 
             return set;
         }
+
 
         #region [   p r i v a t e   m e t h o d s   ]
         private Hashtable RootHashTable(List<object> o)
@@ -652,27 +646,48 @@ namespace Json5Core
             Type t1 = null;
             Type t2 = null;
             bool dictionary = false;
+            bool isSet = false;
+            
             if (gtypes != null)
             {
                 t1 = gtypes[0];
-                t2 = gtypes[1];
-                if (t2 != null)
-                    dictionary = t2.Name.StartsWith("Dictionary");
+
+                if (gtypes.Length > 1)
+                {
+                    t2 = gtypes[1];
+        
+                    if (t2.IsGenericType)
+                    {
+                        Type genericTypeDef = t2.GetGenericTypeDefinition();
+                        List<Type> interfaces = t2.GetInterfaces().ToList();
+                        
+                        if (genericTypeDef == typeof(Dictionary<,>) || (t2.IsClass && interfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDictionary<,>))))
+                        {
+                            dictionary = true;
+                        }
+                        else if (genericTypeDef == typeof(HashSet<>) || (t2.IsClass && interfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISet<>))))
+                        {
+                            isSet = true;
+                        }
+                    }
+                }
             }
 
+
             Type? arraytype = t2.GetElementType();
-            if (parse is Dictionary<string, object>)
+            if (parse is Dictionary<string, object> objects)
             {
                 IDictionary o = (IDictionary)Reflection.Instance.FastCreateInstance(type);
 
-                foreach (KeyValuePair<string, object> kv in (Dictionary<string, object>)parse)
+                foreach (KeyValuePair<string, object> kv in objects)
                 {
                     object v;
                     object k = ChangeType(kv.Key, t1);
 
                     if (dictionary) // deserialize a dictionary
                         v = RootDictionary(kv.Value, t2);
-
+                    else if (isSet) // deserialize a set
+                        v = CreateSet(kv.Value, t2);
                     else if (kv.Value is Dictionary<string, object> value)
                         v = ParseDictionary(value, null, t2, null);
 
@@ -696,6 +711,51 @@ namespace Json5Core
 
             return null;
         }
+        
+        private object CreateSet(object value, Type setType)
+        {
+            Type elementType = setType.GetGenericArguments()[0];
+            Type concreteSetType;
+
+            if (setType.GetGenericTypeDefinition() == typeof(HashSet<>))
+            {
+                concreteSetType = setType;
+            }
+            else
+            {
+                concreteSetType = typeof(HashSet<>).MakeGenericType(elementType);
+            }
+
+            object set = Reflection.Instance.FastCreateInstance(concreteSetType);
+            MethodInfo? addMethod = concreteSetType.GetMethod("Add");
+
+            switch (value)
+            {
+                case IList<object> list:
+                {
+                    foreach (object item in list)
+                    {
+                        object convertedItem = ChangeType(item, elementType);
+                        addMethod.Invoke(set, [convertedItem]);
+                    }
+
+                    break;
+                }
+                case Dictionary<string, object> dict:
+                {
+                    foreach (object item in dict.Values)
+                    {
+                        object convertedItem = ChangeType(item, elementType);
+                        addMethod.Invoke(set, [convertedItem]);
+                    }
+
+                    break;
+                }
+            }
+
+            return set;
+        }
+
 
         internal object ParseDictionary(Dictionary<string, object> d, Dictionary<string, object>? globaltypes, Type type, object? input)
         {

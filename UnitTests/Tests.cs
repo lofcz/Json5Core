@@ -1055,6 +1055,55 @@ public class tests
         Assert.AreEqual(o.Count, h.Count);
     }
     
+    [Test]
+    public static void HashsetNestedTest()
+    {
+        HashSet<HashSet<string>> h = new HashSet<HashSet<string>>
+        {
+            new HashSet<string>
+            {
+                "item1",
+                "item2"
+            },
+            new HashSet<string>
+            {
+                "item3",
+                "item4"
+            },
+        };
+
+        string s = JSON.ToNiceJSON(h);
+        HashSet<HashSet<string>> o = JSON.ToObject<HashSet<HashSet<string>>>(s);
+        
+        Assert.AreEqual(typeof(HashSet<HashSet<string>>), o.GetType());
+        Assert.AreEqual(o.Count, h.Count);
+    }
+    
+    [Test]
+    public static void HashsetTestWithinDictionary()
+    {
+        Dictionary<string, HashSet<string>> dict = new Dictionary<string, HashSet<string>>
+        {
+            {
+                "testKey", new HashSet<string>
+                {
+                    "string1",
+                    "string2"
+                }
+            }
+        };
+
+        string s = JSON.ToNiceJSON(dict);
+        Dictionary<string, HashSet<string>> o = JSON.ToObject<Dictionary<string, HashSet<string>>>(s);
+        
+        Assert.AreEqual(typeof(Dictionary<string, HashSet<string>>), o.GetType());
+        Assert.AreEqual(o.Count, 1);
+
+        HashSet<string> hashSet = dict["testKey"] as HashSet<string>;
+        
+        Assert.AreEqual(hashSet.Count, 2);
+    }
+
     public abstract class abstractClass
     {
         public string myConcreteType { get; set; }
