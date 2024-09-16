@@ -3,7 +3,7 @@ namespace Json5Core;
 /// <summary>
 /// Formatting of JSON
 /// </summary>
-public enum JsonFormatting
+public enum Json5Formatting
 {
     /// <summary>
     /// Terse output

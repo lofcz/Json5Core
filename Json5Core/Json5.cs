@@ -55,7 +55,7 @@ public static class Json5
         /// <param name="obj">Object to serialize</param>
         /// <param name="formatting">Formatting to use</param>
         /// <returns></returns>
-        public static string Serialize(object? obj, JsonFormatting formatting = JsonFormatting.None)
+        public static string Serialize(object? obj, Json5Formatting formatting = Json5Formatting.None)
         {
             return ToJson(obj, Parameters, formatting);
         }
@@ -67,7 +67,7 @@ public static class Json5
         /// <param name="param"></param>
         /// <param name="formatting">Formatting to use</param>
         /// <returns></returns>
-        public static string Serialize(object? obj, Json5Parameters param, JsonFormatting formatting = JsonFormatting.None)
+        public static string Serialize(object? obj, Json5Parameters param, Json5Formatting formatting = Json5Formatting.None)
         {
             return ToJson(obj, param, formatting);
         }
@@ -78,7 +78,7 @@ public static class Json5
         /// <param name="obj"></param>
         /// <param name="param"></param>
         /// <returns></returns>
-        public static string ToJson(object? obj, Json5Parameters param, JsonFormatting formatting = JsonFormatting.None)
+        public static string ToJson(object? obj, Json5Parameters param, Json5Formatting formatting = Json5Formatting.None)
         {
             param.FixValues();
             param = param.MakeCopy();
@@ -96,7 +96,7 @@ public static class Json5
             if (param.EnableAnonymousTypes) { param.UseExtensions = false; param.UsingGlobalTypes = false; }
             string data = new JSONSerializer(param).ConvertToJSON(obj);
 
-            return formatting is JsonFormatting.Intended ? Beautify(data) : data;
+            return formatting is Json5Formatting.Intended ? Beautify(data) : data;
         }
         
         /// <summary>

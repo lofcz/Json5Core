@@ -260,8 +260,13 @@ public class tests
     [OneTimeSetUp]
     public static void setup()
     {
-        Json5.Parameters = new Json5Parameters() { UseExtensions = true };
+        Json5.Parameters = new Json5Parameters { UseExtensions = true };
         Json5.Parameters.FixValues();
+
+        Json5.Serialize(new
+        {
+            myProperty = 1
+        }, Json5Formatting.Intended);
     }
 
     [Test]
