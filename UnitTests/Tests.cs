@@ -990,8 +990,12 @@ public class tests
       ""dir"" : ""C:\\folder\\""
    }
 ]";
-        Assert.AreEqual(x, o);
+        
+        string normalizedExpected = x.Replace("\r\n", "\n");
+        string normalizedActual = o.Replace("\r\n", "\n");
+        Assert.AreEqual(normalizedExpected, normalizedActual);
     }
+
 
     [Test]
     public static void EmptyArray()
