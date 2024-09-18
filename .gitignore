@@ -8,3 +8,4 @@ fastJSONcore/fastJSON5.csproj
 .DS_Store
 *.nupkg
 Versions/**
+.idea
