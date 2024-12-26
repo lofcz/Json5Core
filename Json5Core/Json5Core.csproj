@@ -6,7 +6,7 @@
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Hamish Arblaster, M. Gholam, Matěj Štágl</Authors>
-        <Version>1.0.9</Version>
+        <Version>1.0.10</Version>
         <AssemblyName>Json5Core</AssemblyName>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <LangVersion>9</LangVersion>
@@ -16,10 +16,12 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Nullable>enable</Nullable>
 		<Title>Json5Core</Title>
-		<Description>Smallest, fastest polymorphic JSON serializer for .NET Core</Description>
+		<Description>Smallest, fastest polymorphic JSON5 serializer for .NET Core</Description>
 		<Copyright>Matěj Štágl</Copyright>
 		<PackageProjectUrl>https://github.com/lofcz/Json5Core</PackageProjectUrl>
 		<PackageTags>json5</PackageTags>
+		<PackageIcon>icon.jpeg</PackageIcon>
+		<PackageReleaseNotes>improved ISet&lt;&gt; support</PackageReleaseNotes>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Debug'">
 		<DefineConstants>TRACE;DEBUG;</DefineConstants>

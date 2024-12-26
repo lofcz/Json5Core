@@ -591,7 +591,9 @@ internal class Deserializer
     {
         if (pt != typeof(object))
         {
-            object col = Reflection.Instance.FastCreateInstance(pt);
+            Type actualType = pt is { IsInterface: true, IsGenericType: true } && pt.GetGenericTypeDefinition() == typeof(ISet<>) ? typeof(HashSet<>).MakeGenericType(pt.GetGenericArguments()) : pt;
+            
+            object col = Reflection.Instance.FastCreateInstance(actualType);
             
             MethodInfo? addMethod = pt.GetMethod("Add");
             Type? it = Reflection.Instance.GetGenericArguments(pt)[0];

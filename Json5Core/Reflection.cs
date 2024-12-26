@@ -326,7 +326,7 @@ namespace Json5Core
                     else
                         d_type = myPropInfoType.Dictionary;
                 }
-                else if (genericTypeDefinition == typeof(HashSet<>) || interfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISet<>)))
+                else if (genericTypeDefinition == typeof(HashSet<>) || genericTypeDefinition == typeof(ISet<>) || interfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISet<>)))
                 {
                     d_type = myPropInfoType.HashSet;
                 }

@@ -4,6 +4,7 @@ using System.Data;
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Threading;
 using Json5Core;
 using System.Collections.Specialized;
@@ -13,6 +14,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Dynamic;
 using System.Collections.ObjectModel;
+using NUnit.Framework.Legacy;
 
 //namespace UnitTests
 //{
@@ -294,7 +296,7 @@ public class tests
         Console.WriteLine(Json5.Beautify(s));
         object o = Json5.ToObject(s);
         Console.WriteLine((o as Retclass).Field2);
-        Assert.AreEqual(2312, (o as Retclass).Field2);
+        Assert.That((o as Retclass).Field2, Is.EqualTo(2312));
     }
 
 
@@ -313,8 +315,8 @@ public class tests
         string s = Json5.ToJsonPretty(r);
         Console.WriteLine(s);
         object o = Json5.ToObject(s);
-        Assert.NotNull(o);
-        Assert.AreEqual(2312, ((Retstruct)o).Field2);
+        ClassicAssert.NotNull(o);
+        Assert.That(((Retstruct)o).Field2, Is.EqualTo(2312));
     }
 
     [Test]
@@ -333,7 +335,7 @@ public class tests
         Console.WriteLine(s);
         object o = Json5.Parse(s);
 
-        Assert.IsNotNull(o);
+        ClassicAssert.IsNotNull(o);
     }
 
     [Test]
@@ -346,7 +348,7 @@ public class tests
         Console.WriteLine(s);
         object o = Json5.ToObject(s);
 
-        Assert.IsNotNull(o);
+        ClassicAssert.IsNotNull(o);
     }
 
     [Test]
@@ -360,7 +362,7 @@ public class tests
         object p = Json5.Parse(s);
         object o = Json5.ToObject(s); // long[] {1,2,3,4,5,10}
 
-        Assert.IsNotNull(o);
+        ClassicAssert.IsNotNull(o);
     }
 
     [Test]
@@ -374,7 +376,7 @@ public class tests
         object p = Json5.Parse(s);
         List<int> o = Json5.ToObject<List<int>>(s);
 
-        Assert.IsNotNull(o);
+        ClassicAssert.IsNotNull(o);
     }
 
     [Test]
@@ -382,15 +384,15 @@ public class tests
     {
         string s = Json5.ToJson(42);
         object o = Json5.ToObject(s);
-        Assert.AreEqual(o, 42);
+        Assert.That(42, Is.EqualTo(o));
 
         s = Json5.ToJson("hello");
         o = Json5.ToObject(s);
-        Assert.AreEqual(o, "hello");
+        Assert.That("hello", Is.EqualTo(o));
 
         s = Json5.ToJson(42.42M);
         o = Json5.ToObject(s);
-        Assert.AreEqual(42.42M, o);
+        Assert.That(o, Is.EqualTo(42.42M));
     }
 
     [Test]
@@ -402,7 +404,7 @@ public class tests
         string s = Json5.ToJson(r);
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<string, Retclass> o = Json5.ToObject<Dictionary<string, Retclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -414,7 +416,7 @@ public class tests
         string s = Json5.ToJson(r, new Json5Core.Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<string, Retclass> o = Json5.ToObject<Dictionary<string, Retclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -426,7 +428,7 @@ public class tests
         string s = Json5.ToJson(r);
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<int, Retclass> o = Json5.ToObject<Dictionary<int, Retclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -438,7 +440,7 @@ public class tests
         string s = Json5.ToJson(r, new Json5Core.Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<int, Retclass> o = Json5.ToObject<Dictionary<int, Retclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -450,7 +452,7 @@ public class tests
         string s = Json5.ToJson(r);
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<Retstruct, Retclass> o = Json5.ToObject<Dictionary<Retstruct, Retclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -462,7 +464,7 @@ public class tests
         string s = Json5.ToJson(r, new Json5Core.Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<Retstruct, Retclass> o = Json5.ToObject<Dictionary<Retstruct, Retclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -474,7 +476,7 @@ public class tests
         string s = Json5.ToJson(r);
         Console.WriteLine(Json5.Beautify(s));
         List<Retclass> o = Json5.ToObject<List<Retclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -486,7 +488,7 @@ public class tests
         string s = Json5.ToJson(r, new Json5Core.Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         List<Retclass> o = Json5.ToObject<List<Retclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
@@ -551,7 +553,7 @@ public class tests
         var q = new { Name = "asassa", Address = "asadasd", Age = 12 };
         string sq = Json5.ToJson(q, new Json5Parameters { EnableAnonymousTypes = true, UseExtensions = true });
         Console.WriteLine(sq);
-        Assert.AreEqual("{\"Name\":\"asassa\",\"Address\":\"asadasd\",\"Age\":12}", sq);
+        Assert.That(sq, Is.EqualTo("{\"Name\":\"asassa\",\"Address\":\"asadasd\",\"Age\":12}"));
     }
 
     [Test]
@@ -612,18 +614,18 @@ public class tests
         string s = Json5.ToJson(r);
         Console.WriteLine(Json5.Beautify(s));
         List<RetNestedclass> o = Json5.ToObject<List<RetNestedclass>>(s);
-        Assert.AreEqual(2, o.Count);
+        Assert.That(o.Count, Is.EqualTo(2));
     }
 
     [Test]
     public static void NullTest()
     {
         string s = Json5.ToJson(null);
-        Assert.AreEqual("null", s);
+        Assert.That(s, Is.EqualTo("null"));
         object o = Json5.ToObject(s);
-        Assert.AreEqual(null, o);
+        Assert.That(o, Is.EqualTo(null));
         o = Json5.ToObject<class1>(s);
-        Assert.AreEqual(null, o);
+        Assert.That(o, Is.EqualTo(null));
     }
 
     [Test]
@@ -633,7 +635,7 @@ public class tests
         string s = Json5.ToJson(new Retclass { date = DateTime.Now, Name = "aaaaaaa" }, p);
         Console.WriteLine(Json5.Beautify(s));
         Retclass o = Json5.ToObject<Retclass>(s);
-        Assert.AreEqual("aaaaaaa", o.Name);
+        Assert.That(o.Name, Is.EqualTo("aaaaaaa"));
     }
 
     [Test]
@@ -642,7 +644,7 @@ public class tests
         string s = Json5.ToJson(new object[] { });
         object o = Json5.ToObject(s);
         object[] a = o as object[];
-        Assert.AreEqual(0, a.Length);
+        Assert.That(a.Length, Is.EqualTo(0));
     }
 
     [Test]
@@ -651,10 +653,10 @@ public class tests
         double d = 4.16366160299608e18;
         string s = Json5.ToJson(d);
         double o = Json5.ToObject<double>(s);
-        Assert.AreEqual(d, o);
+        Assert.That(o, Is.EqualTo(d));
 
         object dd = Json5.ToObject("100000000000000000000000000000000000000000");
-        Assert.AreEqual(1e41, dd);
+        Assert.That(dd, Is.EqualTo(1e41));
     }
 
     [Test]
@@ -664,7 +666,7 @@ public class tests
         decimal d = 3.141592654M;
         string s = Json5.ToJson(d);
         decimal o = Json5.ToObject<decimal>(s);
-        Assert.AreEqual(d, o);
+        Assert.That(o, Is.EqualTo(d));
 
         Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en");
     }
@@ -700,10 +702,10 @@ public class tests
         object ax = Json5.ToObject(jsonA); // A has type information in JSON-extended
         ConcurrentClassB bx = Json5.ToObject<ConcurrentClassB>(jsonB); // B needs external type info
 
-        Assert.IsNotNull(ax);
-        Assert.IsInstanceOf<ConcurrentClassA>(ax);
-        Assert.IsNotNull(bx);
-        Assert.IsInstanceOf<ConcurrentClassB>(bx);
+        ClassicAssert.IsNotNull(ax);
+        ClassicAssert.IsInstanceOf<ConcurrentClassA>(ax);
+        ClassicAssert.IsNotNull(bx);
+        ClassicAssert.IsInstanceOf<ConcurrentClassB>(bx);
         Json5.Parameters = p;
     }
 
@@ -713,7 +715,7 @@ public class tests
         ConcurrentClassA c = new ConcurrentClassA();
         string s = Json5.ToJson(c, new Json5Parameters { UseExtensions = false, SerializeNullValues = false });
         Console.WriteLine(Json5.Beautify(s));
-        Assert.AreEqual(false, s.Contains(",")); // should not have a comma
+        Assert.That(s.Contains(","), Is.EqualTo(false)); // should not have a comma
 
 
     }
@@ -765,12 +767,12 @@ public class tests
         thread.Join(); // wait for completion of A due to Sleep in A's constructor
         Console.WriteLine(Thread.CurrentThread.ManagedThreadId + " threads joined.");
 
-        Assert.IsNull(exception, exception == null ? "" : exception.Message + " " + exception.StackTrace);
+        ClassicAssert.IsNull(exception, exception == null ? "" : exception.Message + " " + exception.StackTrace);
 
-        Assert.IsNotNull(ax);
-        Assert.IsInstanceOf<ConcurrentClassA>(ax);
-        Assert.IsNotNull(bx);
-        Assert.IsInstanceOf<ConcurrentClassB>(bx);
+        ClassicAssert.IsNotNull(ax);
+        ClassicAssert.IsInstanceOf<ConcurrentClassA>(ax);
+        ClassicAssert.IsNotNull(bx);
+        ClassicAssert.IsInstanceOf<ConcurrentClassB>(bx);
         Json5.Parameters = p;
     }
 
@@ -843,7 +845,7 @@ public class tests
         sbyte zero = 0;
         string s = Json5.ToJson(zero);
         object o = Json5.ToObject(s);
-        Assert.That(zero, Is.EqualTo(o));
+        ClassicAssert.That(zero, Is.EqualTo(o));
     }
 
 #endif
@@ -858,23 +860,23 @@ public class tests
         //Console.WriteLine(s);
 
         DataSet o = Json5.ToObject<DataSet>(s);
-        Assert.IsNotNull(o);
-        Assert.AreEqual(typeof(DataSet), o.GetType());
-        Assert.AreEqual(2, o.Tables.Count);
+        ClassicAssert.IsNotNull(o);
+        Assert.That(o.GetType(), Is.EqualTo(typeof(DataSet)));
+        Assert.That(o.Tables.Count, Is.EqualTo(2));
 
         object p = Json5.ToObject(s, typeof(DataSet));
-        Assert.IsNotNull(p);
-        Assert.AreEqual(typeof(DataSet), p.GetType());
-        Assert.AreEqual(2, (p as DataSet).Tables.Count);
+        ClassicAssert.IsNotNull(p);
+        Assert.That(p.GetType(), Is.EqualTo(typeof(DataSet)));
+        Assert.That((p as DataSet).Tables.Count, Is.EqualTo(2));
 
 
         s = Json5.ToJsonPretty(ds.Tables[0]);
         Console.WriteLine(s);
 
         DataTable oo = Json5.ToObject<DataTable>(s);
-        Assert.IsNotNull(oo);
-        Assert.AreEqual(typeof(DataTable), oo.GetType());
-        Assert.AreEqual(100, oo.Rows.Count);
+        ClassicAssert.IsNotNull(oo);
+        Assert.That(oo.GetType(), Is.EqualTo(typeof(DataTable)));
+        Assert.That(oo.Rows.Count, Is.EqualTo(100));
     }
 
 #endif
@@ -891,23 +893,23 @@ public class tests
         dynamic inp = d.inner.prop;
         dynamic i = d.arr[1].a;
 
-        Assert.AreEqual("aaaaaa", ss);
-        Assert.AreEqual(10, oo);
-        Assert.AreEqual(30, inp);
-        Assert.AreEqual("2000-01-01 00:00:00Z", dob);
+        Assert.That(ss, Is.EqualTo("aaaaaa"));
+        Assert.That(oo, Is.EqualTo(10));
+        Assert.That(inp, Is.EqualTo(30));
+        Assert.That(dob, Is.EqualTo("2000-01-01 00:00:00Z"));
 
         s = "{\"ints\":[1,2,3,4,5]}";
 
         d = Json5.ToDynamic(s);
         dynamic o = d.ints[0];
-        Assert.AreEqual(1, o);
+        Assert.That(o, Is.EqualTo(1));
 
         s = "[1,2,3,4,5,{\"key\":90}]";
         d = Json5.ToDynamic(s);
         o = d[2];
-        Assert.AreEqual(3, o);
+        Assert.That(o, Is.EqualTo(3));
         dynamic p = d[5].key;
-        Assert.AreEqual(90, p);
+        Assert.That(p, Is.EqualTo(90));
     }
 
     [Test]
@@ -915,9 +917,9 @@ public class tests
     {
         string s = "{\"Name\":\"aaaaaa\",\"Age\":10,\"dob\":\"2000-01-01 00:00:00Z\",\"inner\":{\"prop\":30},\"arr\":[1,{\"a\":2},3,4,5,6]}";
         dynamic d = Json5Core.Json5.ToDynamic(s);
-        Assert.AreEqual(5, d.GetDynamicMemberNames().Count);
-        Assert.AreEqual(6, d.arr.Count);
-        Assert.AreEqual("aaaaaa", d["Name"]);
+        Assert.That(d.GetDynamicMemberNames().Count, Is.EqualTo(5));
+        Assert.That(d.arr.Count, Is.EqualTo(6));
+        Assert.That(d["Name"], Is.EqualTo("aaaaaa"));
     }
 #endif
 
@@ -926,7 +928,7 @@ public class tests
     {
         string s = Json5.ToJson(new commaclass(), new Json5Parameters() { UseExtensions = true });
         Console.WriteLine(Json5.Beautify(s));
-        Assert.AreEqual(true, s.Contains("\"$type\":\"1\","));
+        Assert.That(s.Contains("\"$type\":\"1\","), Is.EqualTo(true));
 
         var objTest = new
         {
@@ -952,22 +954,22 @@ public class tests
 
         string json = Json5.ToJson(objTest, p);
         Console.WriteLine(Json5.Beautify(json));
-        Assert.AreEqual("{\"A\":\"foo\",\"D\":\"bar\",\"E\":12}", json);
+        Assert.That(json, Is.EqualTo("{\"A\":\"foo\",\"D\":\"bar\",\"E\":12}"));
 
         var o2 = new { A = "foo", B = "bar", C = (object)null };
         json = Json5.ToJson(o2, p);
         Console.WriteLine(Json5.Beautify(json));
-        Assert.AreEqual("{\"A\":\"foo\",\"B\":\"bar\"}", json);
+        Assert.That(json, Is.EqualTo("{\"A\":\"foo\",\"B\":\"bar\"}"));
 
         var o3 = new { A = (object)null };
         json = Json5.ToJson(o3, p);
         Console.WriteLine(Json5.Beautify(json));
-        Assert.AreEqual("{}", json);
+        Assert.That(json, Is.EqualTo("{}"));
 
         var o4 = new { A = (object)null, B = "foo" };
         json = Json5.ToJson(o4, p);
         Console.WriteLine(Json5.Beautify(json));
-        Assert.AreEqual("{\"B\":\"foo\"}", json);
+        Assert.That(json, Is.EqualTo("{\"B\":\"foo\"}"));
     }
 
     [Test]
@@ -993,7 +995,7 @@ public class tests
         
         string normalizedExpected = x.Replace("\r\n", "\n");
         string normalizedActual = o.Replace("\r\n", "\n");
-        Assert.AreEqual(normalizedExpected, normalizedActual);
+        Assert.That(normalizedActual, Is.EqualTo(normalizedExpected));
     }
 
 
@@ -1002,9 +1004,9 @@ public class tests
     {
         string str = "[]";
         List<class1> o = Json5.ToObject<List<class1>>(str);
-        Assert.AreEqual(typeof(List<class1>), o.GetType());
+        Assert.That(o.GetType(), Is.EqualTo(typeof(List<class1>)));
         class1[] d = Json5.ToObject<class1[]>(str);
-        Assert.AreEqual(typeof(class1[]), d.GetType());
+        Assert.That(d.GetType(), Is.EqualTo(typeof(class1[])));
     }
 
     public class diclist
@@ -1022,13 +1024,13 @@ public class tests
         string s = Json5.ToJson(dd, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(s);
         diclist o = Json5.ToObject<diclist>(s);
-        Assert.AreEqual(3, o.d["a"].Count);
+        Assert.That(o.d["a"].Count, Is.EqualTo(3));
 
         s = Json5.ToJson(dd.d, new Json5Parameters { UseExtensions = false });
         Dictionary<string, List<string>> oo = Json5.ToObject<Dictionary<string, List<string>>>(s);
-        Assert.AreEqual(3, oo["a"].Count);
+        Assert.That(oo["a"].Count, Is.EqualTo(3));
         Dictionary<string, string[]> ooo = Json5.ToObject<Dictionary<string, string[]>>(s);
-        Assert.AreEqual(3, ooo["b"].Length);
+        Assert.That(ooo["b"].Length, Is.EqualTo(3));
     }
 
     [Test]
@@ -1041,8 +1043,8 @@ public class tests
         string s = Json5.ToJsonPretty(h, new Json5Parameters() { UseExtensions = true });
 
         Hashtable o = Json5.ToObject<Hashtable>(s);
-        Assert.AreEqual(typeof(Hashtable), o.GetType());
-        Assert.AreEqual(typeof(class1), o["dsds"].GetType());
+        Assert.That(o.GetType(), Is.EqualTo(typeof(Hashtable)));
+        Assert.That(o["dsds"].GetType(), Is.EqualTo(typeof(class1)));
     }
 
     class ClsWithHashSet
@@ -1051,21 +1053,27 @@ public class tests
         public HashSet<string> Set { get; set; }
     }
     
-    class ClsWithHashSetConcurrent
+    private class ClsWithHashSetConcurrent
     {
         public ConcurrentDictionary<string, string> Dict { get; set; } = [];
         public HashSet<string> Set { get; set; }
     }
 
-    class MySet<T> : HashSet<T>
+    private class MySet<T> : HashSet<T>
     {
         
     }
     
-    class ClsWithHashSetCustom
+    private class ClsWithHashSetCustom
     {
         public ConcurrentDictionary<string, string> Dict { get; set; } = [];
         public MySet<string> Set { get; set; }
+    }
+    
+    private class ClsWithISetCustom
+    {
+        public ConcurrentDictionary<string, string> Dict { get; set; } = [];
+        public ISet<string> Set { get; set; }
     }
     
     [Test]
@@ -1080,9 +1088,28 @@ public class tests
 
         ClsWithHashSetCustom? s = Json5.Deserialize<ClsWithHashSetCustom>(json);
         
-        Assert.NotNull(s);
-        Assert.AreEqual(s.Dict.Count, 1);
-        Assert.AreEqual(s.Set.Count, 2);
+        ClassicAssert.NotNull(s);
+        Assert.That(1, Is.EqualTo(s.Dict.Count));
+        Assert.That(2, Is.EqualTo(s.Set.Count));
+        ClassicAssert.IsInstanceOf<MySet<string>>(s.Set);
+    }
+    
+    [Test]
+    public static void CustomISetClsTest()
+    {
+        string json = """
+                      {
+                        "Dict": { "prop1": "value1" },
+                        "Set": [ "set1", "set2" ]
+                      }
+                      """;
+
+        ClsWithISetCustom? s = Json5.Deserialize<ClsWithISetCustom>(json);
+        
+        ClassicAssert.NotNull(s);
+        Assert.That(1, Is.EqualTo(s.Dict.Count));
+        Assert.That(2, Is.EqualTo(s.Set.Count));
+        ClassicAssert.IsInstanceOf<HashSet<string>>(s.Set);
     }
     
     [Test]
@@ -1097,10 +1124,10 @@ public class tests
 
         ClsWithHashSetConcurrent? s = Json5.Deserialize<ClsWithHashSetConcurrent>(json);
         
-        Assert.NotNull(s);
-        Assert.AreEqual(s.Dict.GetType(), typeof(ConcurrentDictionary<string, string>));
-        Assert.AreEqual(s.Dict.Count, 1);
-        Assert.AreEqual(s.Set.Count, 2);
+        ClassicAssert.NotNull(s);
+        Assert.That(typeof(ConcurrentDictionary<string, string>), Is.EqualTo(s.Dict.GetType()));
+        Assert.That(1, Is.EqualTo(s.Dict.Count));
+        Assert.That(2, Is.EqualTo(s.Set.Count));
     }
     
     [Test]
@@ -1115,10 +1142,38 @@ public class tests
 
         ClsWithHashSet? s = Json5.Deserialize<ClsWithHashSet>(json);
         
-        Assert.NotNull(s);
+        ClassicAssert.NotNull(s);
+
+        Assert.That(1, Is.EqualTo(s.Dict.Count));
+        Assert.That(2, Is.EqualTo(s.Set.Count));
+    }
+    
+    [Test]
+    public static void DirectISetTest()
+    {
+        string json = """
+                      [ "set1", "set2" ]
+                      """;
+
+        ISet<string>? s = Json5.Deserialize<ISet<string>>(json);
         
-        Assert.AreEqual(s.Dict.Count, 1);
-        Assert.AreEqual(s.Set.Count, 2);
+        ClassicAssert.NotNull(s);
+        Assert.That(2, Is.EqualTo(s.Count));
+        Assert.That(s.GetType(), Is.EqualTo(typeof(HashSet<string>)));
+    }
+    
+    [Test]
+    public static void DirectHashSetTest()
+    {
+        string json = """
+                      [ "set1", "set2" ]
+                      """;
+
+        HashSet<string>? s = Json5.Deserialize<HashSet<string>>(json);
+        
+        ClassicAssert.NotNull(s);
+        Assert.That(2, Is.EqualTo(s.Count));
+        Assert.That(s.GetType(), Is.EqualTo(typeof(HashSet<string>)));
     }
     
     [Test]
@@ -1132,9 +1187,9 @@ public class tests
 
         string s = Json5.ToJsonPretty(h);
         HashSet<string> o = Json5.ToObject<HashSet<string>>(s);
-        
-        Assert.AreEqual(typeof(HashSet<string>), o.GetType());
-        Assert.AreEqual(o.Count, h.Count);
+
+        Assert.That(o.GetType(), Is.EqualTo(typeof(HashSet<string>)));
+        Assert.That(h.Count, Is.EqualTo(o.Count));
     }
     
     [Test]
@@ -1156,9 +1211,9 @@ public class tests
 
         string s = Json5.ToJsonPretty(h);
         HashSet<HashSet<string>> o = Json5.ToObject<HashSet<HashSet<string>>>(s);
-        
-        Assert.AreEqual(typeof(HashSet<HashSet<string>>), o.GetType());
-        Assert.AreEqual(o.Count, h.Count);
+
+        Assert.That(o.GetType(), Is.EqualTo(typeof(HashSet<HashSet<string>>)));
+        Assert.That(h.Count, Is.EqualTo(o.Count));
     }
     
     [Test]
@@ -1177,13 +1232,13 @@ public class tests
 
         string s = Json5.ToJsonPretty(dict);
         Dictionary<string, HashSet<string>> o = Json5.ToObject<Dictionary<string, HashSet<string>>>(s);
-        
-        Assert.AreEqual(typeof(Dictionary<string, HashSet<string>>), o.GetType());
-        Assert.AreEqual(o.Count, 1);
+
+        Assert.That(o.GetType(), Is.EqualTo(typeof(Dictionary<string, HashSet<string>>)));
+        Assert.That(1, Is.EqualTo(o.Count));
 
         HashSet<string> hashSet = dict["testKey"] as HashSet<string>;
-        
-        Assert.AreEqual(hashSet.Count, 2);
+
+        Assert.That(2, Is.EqualTo(hashSet.Count));
     }
 
     public abstract class abstractClass
@@ -1262,9 +1317,9 @@ public class tests
         string json = "{\"name\":\"aaaa\",\"age\": 42}";
 
         ignorecase o = Json5.ToObject<ignorecase>(json);
-        Assert.AreEqual("aaaa", o.Name);
+        Assert.That(o.Name, Is.EqualTo("aaaa"));
         ignorecase2 oo = Json5.ToObject<ignorecase2>(json.ToUpper());
-        Assert.AreEqual("AAAA", oo.name);
+        Assert.That(oo.name, Is.EqualTo("AAAA"));
     }
 
     public class coltest
@@ -1283,14 +1338,14 @@ public class tests
         string s = Json5.ToJson(nv);
         Console.WriteLine(s);
         NameValueCollection oo = Json5.ToObject<NameValueCollection>(s);
-        Assert.AreEqual("a", oo["1"]);
+        Assert.That(oo["1"], Is.EqualTo("a"));
         StringDictionary sd = new StringDictionary();
         sd.Add("1", "a");
         sd.Add("2", "b");
         s = Json5.ToJson(sd);
         Console.WriteLine(s);
         StringDictionary o = Json5.ToObject<StringDictionary>(s);
-        Assert.AreEqual("b", o["2"]);
+        Assert.That(o["2"], Is.EqualTo("b"));
 
         coltest c = new coltest();
         c.name = "aaa";
@@ -1299,8 +1354,8 @@ public class tests
         s = Json5.ToJson(c);
         Console.WriteLine(s);
         object ooo = Json5.ToObject(s);
-        Assert.AreEqual("a", (ooo as coltest).nv["1"]);
-        Assert.AreEqual("b", (ooo as coltest).sd["2"]);
+        Assert.That((ooo as coltest).nv["1"], Is.EqualTo("a"));
+        Assert.That((ooo as coltest).sd["2"], Is.EqualTo("b"));
     }
 
     public class constch
@@ -1355,14 +1410,14 @@ public class tests
         ignore i = new ignore { Age1 = 10, Age2 = 20, Name = "aa" };
         string s = Json5.ToJson(i);
         Console.WriteLine(s);
-        Assert.IsFalse(s.Contains("Age1"));
+        ClassicAssert.IsFalse(s.Contains("Age1"));
         i = new ignore1 { Age1 = 10, Age2 = 20, Name = "bb" };
         Json5Parameters j = new Json5Parameters() { UseExtensions = true };
         j.IgnoreAttributes.Add(typeof(ignoreatt));
         s = Json5.ToJson(i, j);
         Console.WriteLine(s);
-        Assert.IsFalse(s.Contains("Age1"));
-        Assert.IsFalse(s.Contains("Age2"));
+        ClassicAssert.IsFalse(s.Contains("Age1"));
+        ClassicAssert.IsFalse(s.Contains("Age2"));
     }
 
     public class nondefaultctor
@@ -1379,14 +1434,14 @@ public class tests
         string s = Json5.ToJson(o);
         Console.WriteLine(s);
         nondefaultctor obj = Json5.ToObject<nondefaultctor>(s, new Json5Parameters { ParametricConstructorOverride = true, UsingGlobalTypes = true, UseExtensions = true });
-        Assert.AreEqual(10, obj.age);
+        Assert.That(obj.age, Is.EqualTo(10));
         Console.WriteLine("list of objects");
         List<nondefaultctor> l = new List<nondefaultctor> { o, o, o };
         s = Json5.ToJson(l);
         Console.WriteLine(s);
         List<nondefaultctor> obj2 = Json5.ToObject<List<nondefaultctor>>(s, new Json5Parameters { ParametricConstructorOverride = true, UsingGlobalTypes = true, UseExtensions = true });
-        Assert.AreEqual(3, obj2.Count);
-        Assert.AreEqual(10, obj2[1].age);
+        Assert.That(obj2.Count, Is.EqualTo(3));
+        Assert.That(obj2[1].age, Is.EqualTo(10));
     }
 
     private delegate object CreateObj();
@@ -1510,8 +1565,8 @@ public class tests
         string s = Json5.ToJson(o, new Json5Parameters() { UseExtensions = true });
         Console.WriteLine(Json5.Beautify(s));
         o1 p = Json5.ToObject<o1>(s);
-        Assert.AreEqual(p, p.o2obj.parent);
-        Assert.AreEqual(p.o2obj, p.child.child);
+        Assert.That(p.o2obj.parent, Is.EqualTo(p));
+        Assert.That(p.child.child, Is.EqualTo(p.o2obj));
     }
 
     public class lol
@@ -1533,7 +1588,7 @@ public class tests
         s = Json5.ToJson(p);
         Console.WriteLine(s);
         i = Json5.ToObject(s);
-        Assert.AreEqual(3, (i as lol).r[0].Count);
+        Assert.That((i as lol).r[0].Count, Is.EqualTo(3));
 
         List<object[]> oo = new List<object[]> { new object[] { 1, 2, 3 }, new object[] { "a", 4, "b" } };
         s = Json5.ToJson(oo);
@@ -1544,7 +1599,7 @@ public class tests
         s = Json5.ToJson(l);
         Console.WriteLine(s);
         object iii = Json5.ToObject(s);
-        Assert.AreEqual(3, (iii as lol2).r[0].Length);
+        Assert.That((iii as lol2).r[0].Length, Is.EqualTo(3));
     }
     //[Test]
     //public static void Exception()
@@ -1554,7 +1609,7 @@ public class tests
     //    var s = Json5Core.JSON.ToJSON(e);
     //    Console.WriteLine(s);
     //    var o = Json5Core.JSON.ToObject(s);
-    //    Assert.AreEqual("hello", (o as Exception).Message);
+    //    ClassicAssert.AreEqual("hello", (o as Exception).Message);
     //}
     //public class ilistclass
     //{
@@ -1655,13 +1710,13 @@ public class tests
         string s = Json5.ToJson(dt, jpar);
         Console.WriteLine(s);
         DateTime o = Json5.ToObject<DateTime>(s, jpar);
-        Assert.AreNotEqual(dt.Millisecond, o.Millisecond);
+        ClassicAssert.AreNotEqual(dt.Millisecond, o.Millisecond);
 
         jpar.DateTimeMilliseconds = true;
         s = Json5.ToJson(dt, jpar);
         Console.WriteLine(s);
         o = Json5.ToObject<DateTime>(s, jpar);
-        Assert.AreEqual(dt.Millisecond, o.Millisecond);
+        Assert.That(o.Millisecond, Is.EqualTo(dt.Millisecond));
     }
 
     public struct Foo
@@ -1688,11 +1743,11 @@ public class tests
     public static void NullVariable()
     {
         int? i = Json5.ToObject<int?>("10");
-        Assert.AreEqual(10, i);
+        Assert.That(i, Is.EqualTo(10));
         long? l = Json5.ToObject<long?>("100");
-        Assert.AreEqual(100L, l);
+        Assert.That(l, Is.EqualTo(100L));
         DateTime? d = Json5.ToObject<DateTime?>("\"2000-01-01 10:10:10\"");
-        Assert.AreEqual(2000, d.Value.Year);
+        Assert.That(d.Value.Year, Is.EqualTo(2000));
     }
 
     public class readonlyclass
@@ -1713,7 +1768,7 @@ public class tests
     {
         string s = Json5.ToJson(new readonlyclass(), new Json5Parameters { ShowReadOnlyProperties = true, UseExtensions = true });
         readonlyclass o = Json5.ToObject<readonlyclass>(s.Replace("aa", "cc"));
-        Assert.AreEqual("aa", o.ROAddress);
+        Assert.That(o.ROAddress, Is.EqualTo("aa"));
     }
 
     public class container
@@ -1756,9 +1811,9 @@ public class tests
         string s = Json5.ToJsonPretty(r, new Json5Parameters { SerializeToLowerCaseNames = true,UseExtensions = true });
         Console.WriteLine(s);
         object o = Json5.ToObject(s);
-        Assert.IsNotNull(o);
-        Assert.AreEqual("Hello", (o as Retclass).Name);
-        Assert.AreEqual(2312, (o as Retclass).Field2);
+        ClassicAssert.IsNotNull(o);
+        Assert.That((o as Retclass).Name, Is.EqualTo("Hello"));
+        Assert.That((o as Retclass).Field2, Is.EqualTo(2312));
     }
 
 
@@ -1781,11 +1836,11 @@ public class tests
         Console.WriteLine(s);
         s = Json5.ToJson(d, new Json5Parameters() { SerializeNullValues = false, UseExtensions = true });
         Console.WriteLine(s);
-        Assert.AreEqual("{\"b\":12}", s);
+        Assert.That(s, Is.EqualTo("{\"b\":12}"));
 
         s = Json5.ToJson(new nulltest(), new Json5Parameters { SerializeNullValues = false, UseExtensions = false });
         Console.WriteLine(s);
-        Assert.AreEqual("{\"b\":0}", s);
+        Assert.That(s, Is.EqualTo("{\"b\":0}"));
     }
 
 
@@ -1854,16 +1909,16 @@ public class tests
     };
         string s = Json5.ToJson(a);
         arrayclass2 o = Json5.ToObject<arrayclass2>(s);
-        CollectionAssert.AreEqual(a.ints, o.ints);
-        CollectionAssert.AreEqual(a.strs, o.strs);
-        CollectionAssert.AreEqual(a.int2d[0], o.int2d[0]);
-        CollectionAssert.AreEqual(a.int2d[1], o.int2d[1]);
-        CollectionAssert.AreEqual(a.int3d[0][0], o.int3d[0][0]);
-        CollectionAssert.AreEqual(a.int3d[0][1], o.int3d[0][1]);
-        Assert.AreEqual(null, o.int3d[1]);
-        CollectionAssert.AreEqual(a.int3d[2][0], o.int3d[2][0]);
-        CollectionAssert.AreEqual(a.int3d[2][1], o.int3d[2][1]);
-        CollectionAssert.AreEqual(a.int3d[2][2], o.int3d[2][2]);
+        Assert.That(o.ints, Is.EqualTo(a.ints));
+        Assert.That(o.strs, Is.EqualTo(a.strs));
+        Assert.That(o.int2d[0], Is.EqualTo(a.int2d[0]));
+        Assert.That(o.int2d[1], Is.EqualTo(a.int2d[1]));
+        Assert.That(o.int3d[0][0], Is.EqualTo(a.int3d[0][0]));
+        Assert.That(o.int3d[0][1], Is.EqualTo(a.int3d[0][1]));
+        Assert.That(o.int3d[1], Is.EqualTo(null));
+        Assert.That(o.int3d[2][0], Is.EqualTo(a.int3d[2][0]));
+        Assert.That(o.int3d[2][1], Is.EqualTo(a.int3d[2][1]));
+        Assert.That(o.int3d[2][2], Is.EqualTo(a.int3d[2][2]));
         for (int i = 0; i < a.class2d.Length; i++)
         {
             baseclass[] ai = a.class2d[i];
@@ -1880,8 +1935,8 @@ public class tests
                 {
                     continue;
                 }
-                Assert.AreEqual(aii.Name, oii.Name);
-                Assert.AreEqual(aii.Code, oii.Code);
+                Assert.That(oii.Name, Is.EqualTo(aii.Name));
+                Assert.That(oii.Code, Is.EqualTo(aii.Code));
             }
         }
     }
@@ -1895,7 +1950,7 @@ public class tests
         string json = Json5.ToJson(dict);
 
         Dictionary<string, List<float>> des = Json5.ToObject<Dictionary<string, List<float>>>(json);
-        Assert.IsInstanceOf(typeof(List<float>), des["C"]);
+        ClassicAssert.IsInstanceOf(typeof(List<float>), des["C"]);
     }
 
     [Test]
@@ -1989,7 +2044,7 @@ public class tests
 }
 ";
         object o = Json5.Parse(s);
-        Assert.AreEqual(2, (o as IDictionary).Count);
+        Assert.That((o as IDictionary).Count, Is.EqualTo(2));
     }
 
 #if !CORE_TEST || NETFRAMEWORK || !NETCOREAPP3_0_OR_GREATER
@@ -2010,7 +2065,7 @@ public class tests
         var s = JSON.ToJSON(ip);
 
         var o = JSON.ToObject<ctype>(s);
-        Assert.AreEqual(ip.ip, o.ip);
+        ClassicAssert.AreEqual(ip.ip, o.ip);
     }
 #else
     public class ctype
@@ -2063,7 +2118,7 @@ public class tests
         string s = Json5.ToJson(hashcode);
 
         ctype o = Json5.ToObject<ctype>(s);
-        Assert.AreEqual(hashcode.hashcode.ToHashCode(), o.hashcode.ToHashCode());
+        Assert.That(o.hashcode.ToHashCode(), Is.EqualTo(hashcode.hashcode.ToHashCode()));
     }
 #endif
 
@@ -2091,7 +2146,7 @@ public class tests
         };
 
         json = Json5.ToJson(obj, json5Parameters);
-        Assert.True(json.Contains("\"Name\""));
+        ClassicAssert.True(json.Contains("\"Name\""));
     }
 
     [Test]
@@ -2104,7 +2159,7 @@ public class tests
         obj.UserBase = "";
 
         string s = Json5.ToJson(obj);
-        Assert.True(s.Contains("UserView\":\"10080"));
+        ClassicAssert.True(s.Contains("UserView\":\"10080"));
     }
 
 
@@ -2126,10 +2181,10 @@ public class tests
 ";
 
         List<item> o = Json5.ToObject<List<item>>(j);
-        Assert.AreEqual(3, o.Count);
+        Assert.That(o.Count, Is.EqualTo(3));
 
         item[] oo = Json5.ToObject<item[]>(j);
-        Assert.AreEqual(3, oo.Count());
+        Assert.That(oo.Count(), Is.EqualTo(3));
     }
 
     [Test]
@@ -2141,11 +2196,11 @@ public class tests
 
         string s = Json5.ToJson(d);
         double o = Json5.ToObject<double>(s);
-        Assert.AreEqual(d, o);
+        Assert.That(o, Is.EqualTo(d));
 
         s = Json5.ToJson(f);
         float oo = Json5.ToObject<float>(s);
-        Assert.AreEqual(f, oo);
+        Assert.That(oo, Is.EqualTo(f));
 
         float pp = Json5.ToObject<Single>(s);
     }
@@ -2161,8 +2216,8 @@ public class tests
         p.UseExtensions = false;
         string s = Json5.ToJson(dict, p);
         Dictionary<string, string> d = Json5.ToObject<Dictionary<string, string>>(s);
-        Assert.AreEqual(1, d.Count);
-        Assert.AreEqual("With \"Quotes\"", d.Keys.First());
+        Assert.That(d.Count, Is.EqualTo(1));
+        Assert.That(d.Keys.First(), Is.EqualTo("With \"Quotes\""));
     }
 
     [Test]
@@ -2609,12 +2664,12 @@ public class tests
         Console.WriteLine(s);
         DateTimeOffset d = Json5.ToObject<DateTimeOffset>(s);
         // ticks will differ, so convert both to UTC and use ISO8601 roundtrip format to compare
-        Assert.AreEqual(dt.ToUniversalTime().ToString("O"), d.ToUniversalTime().ToString("O"));
+        Assert.That(d.ToUniversalTime().ToString("O"), Is.EqualTo(dt.ToUniversalTime().ToString("O")));
 
         s = Json5.ToJson(dt, new Json5Parameters { UseUTCDateTime = false, UseExtensions = true });
         Console.WriteLine(s);
         d = Json5.ToObject<DateTimeOffset>(s);
-        Assert.AreEqual(dt.ToUniversalTime().ToString("O"), d.ToUniversalTime().ToString("O"));
+        Assert.That(d.ToUniversalTime().ToString("O"), Is.EqualTo(dt.ToUniversalTime().ToString("O")));
 
         // test deserialize of output from DateTimeOffset.ToString()
         // DateTimeOffset roundtrip format, UTC 
@@ -2622,20 +2677,20 @@ public class tests
         s = '"' + dt.ToString("O") + '"';
         Console.WriteLine(s);
         d = Json5.ToObject<DateTimeOffset>(s);
-        Assert.AreEqual(dt.ToUniversalTime().ToString("O"), d.ToUniversalTime().ToString("O"));
+        Assert.That(d.ToUniversalTime().ToString("O"), Is.EqualTo(dt.ToUniversalTime().ToString("O")));
 
         // DateTimeOffset roundtrip format, non-UTC
         dt = new DateTimeOffset(new DateTime(2017, 5, 22, 10, 06, 53, 123, DateTimeKind.Unspecified), TimeSpan.FromHours(11.5));
         s = '"' + dt.ToString("O") + '"';
         Console.WriteLine(s);
         d = Json5.ToObject<DateTimeOffset>(s);
-        Assert.AreEqual(dt.ToUniversalTime().ToString("O"), d.ToUniversalTime().ToString("O"));
+        Assert.That(d.ToUniversalTime().ToString("O"), Is.EqualTo(dt.ToUniversalTime().ToString("O")));
 
         // previous Json5Core serialization format for DateTimeOffset. Millisecond resolution only.
         s = '"' + dt.ToString("yyyy-MM-ddTHH:mm:ss.fff zzz") + '"';
         Console.WriteLine(s);
         DateTimeOffset ld = Json5.ToObject<DateTimeOffset>(s);
-        Assert.AreEqual(dt.ToUniversalTime().ToString("O"), ld.ToUniversalTime().ToString("O"));
+        Assert.That(ld.ToUniversalTime().ToString("O"), Is.EqualTo(dt.ToUniversalTime().ToString("O")));
     }
 
     class X
@@ -2650,10 +2705,10 @@ public class tests
     {
         X x = new X(10);
         string s = Json5.ToJson(x, new Json5Parameters { ShowReadOnlyProperties = true, UseExtensions = true });
-        Assert.True(s.Contains("\"I\":"));
+        ClassicAssert.True(s.Contains("\"I\":"));
         X o = Json5.ToObject<X>(s, new Json5Parameters { ParametricConstructorOverride = true, UseExtensions = true });
         // no set available -> I = 0
-        Assert.AreEqual(0, o.I);
+        Assert.That(o.I, Is.EqualTo(0));
     }
 
 
@@ -2749,7 +2804,7 @@ public class tests
 
         string s = Json5.ToJson(dic);
         Dictionary<int, Dictionary<string, double>> obj = Json5.ToObject<Dictionary<int, Dictionary<string, double>>>(s);
-        Assert.AreEqual(2, obj[0].Count());
+        Assert.That(obj[0].Count(), Is.EqualTo(2));
     }
 
     [Test]
@@ -2771,7 +2826,7 @@ public class tests
         foreach (dynamic o in testObject)
         {
             Console.WriteLine(o.Prop1);
-            Assert.True(o.Prop1 != "");
+            ClassicAssert.True(o.Prop1 != "");
         }
     }
 
@@ -2791,8 +2846,8 @@ public class tests
 
         Dictionary<string, List<AC>> dictList2 = Json5Core.Json5.ToObject<Dictionary<string, List<AC>>>(jsonstr);
 
-        Assert.True(dictList2["P"].Count == 2);
-        Assert.True(dictList2["P"][0].GetType() == typeof(AC));
+        ClassicAssert.True(dictList2["P"].Count == 2);
+        ClassicAssert.True(dictList2["P"][0].GetType() == typeof(AC));
         foreach (KeyValuePair<string, List<AC>> k in dictList2)
         {
             Console.Write(k.Key);
@@ -2813,7 +2868,7 @@ public class tests
         //v = 42;
         //byte v = 42;
         ac<long> o = Json5.ToObject<ac<long>>("{\"age\":\"" + v + "\"}");
-        Assert.AreEqual(v, o.age);
+        Assert.That(o.age, Is.EqualTo(v));
     }
 
     [Test]
@@ -2822,7 +2877,7 @@ public class tests
         TimeSpan t = new TimeSpan(2, 2, 2, 2);
         string s = Json5.ToJson(t);
         TimeSpan o = Json5.ToObject<TimeSpan>(s);
-        Assert.AreEqual(o.Days, t.Days);
+        Assert.That(t.Days, Is.EqualTo(o.Days));
     }
 
     public class dmember
@@ -2848,15 +2903,15 @@ public class tests
         Console.WriteLine(s);
         dmember o = Json5Core.Json5.ToObject<dmember>(s);
 
-        Assert.AreEqual(42, o.docid);
-        Assert.AreEqual("Date", o.MyProperty);
+        Assert.That(o.docid, Is.EqualTo(42));
+        Assert.That(o.MyProperty, Is.EqualTo("Date"));
 
         string ss = Json5Core.Json5.ToJson(o, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(ss);
-        Assert.AreEqual(s, ss);
+        Assert.That(ss, Is.EqualTo(s));
 
         TestObj popop = Json5.ToObject<TestObj>("{'D':9}");
-        Assert.AreEqual(9, popop.SomeData);
+        Assert.That(popop.SomeData, Is.EqualTo(9));
     }
 
     [Test]
@@ -2865,10 +2920,10 @@ public class tests
         string t = "test\0test";
         Console.WriteLine(t);
         string s = Json5Core.Json5.ToJson(t, new Json5Parameters { UseEscapedUnicode = false, UseExtensions = true });
-        Assert.True(s.Contains("\\0"));
+        ClassicAssert.True(s.Contains("\\0"));
         Console.WriteLine(s);
         string o = Json5Core.Json5.ToObject<string>(s);
-        Assert.True(o.Contains("\0"));
+        ClassicAssert.True(o.Contains("\0"));
         Console.WriteLine("" + o);
     }
 
@@ -2964,31 +3019,31 @@ public class tests
 
 
         //ok
-        Assert.AreEqual(d.Dmax, o.Dmax);
-        Assert.AreEqual(d.DmaxDec, o.DmaxDec);
-        Assert.AreEqual(d.Dmin, o.Dmin);
-        Assert.AreEqual(d.DminDec, o.DminDec);
-        Assert.AreEqual(d.Dnan, o.Dnan);
-        Assert.AreEqual(d.Dni, o.Dni);
-        Assert.AreEqual(d.Dpi, o.Dpi);
-        Assert.AreEqual(d.FmaxDec, o.FmaxDec);
-        Assert.AreEqual(d.FminDec, o.FminDec);
-        Assert.AreEqual(d.Fnan, o.Fnan);
-        Assert.AreEqual(d.Fni, o.Fni);
-        Assert.AreEqual(d.Fpi, o.Fpi);
-        Assert.AreEqual(d.Imax, o.Imax);
-        Assert.AreEqual(d.Imin, o.Imin);
-        Assert.AreEqual(d.Lmax, o.Lmax);
-        Assert.AreEqual(d.Lmin, o.Lmin);
-        Assert.AreEqual(d.Mmax, o.Mmax);
-        Assert.AreEqual(d.Mmin, o.Mmin);
-        Assert.AreEqual(d.UImax, o.UImax);
-        Assert.AreEqual(d.ULmax, o.ULmax);
+        Assert.That(o.Dmax, Is.EqualTo(d.Dmax));
+        Assert.That(o.DmaxDec, Is.EqualTo(d.DmaxDec));
+        Assert.That(o.Dmin, Is.EqualTo(d.Dmin));
+        Assert.That(o.DminDec, Is.EqualTo(d.DminDec));
+        Assert.That(o.Dnan, Is.EqualTo(d.Dnan));
+        Assert.That(o.Dni, Is.EqualTo(d.Dni));
+        Assert.That(o.Dpi, Is.EqualTo(d.Dpi));
+        Assert.That(o.FmaxDec, Is.EqualTo(d.FmaxDec));
+        Assert.That(o.FminDec, Is.EqualTo(d.FminDec));
+        Assert.That(o.Fnan, Is.EqualTo(d.Fnan));
+        Assert.That(o.Fni, Is.EqualTo(d.Fni));
+        Assert.That(o.Fpi, Is.EqualTo(d.Fpi));
+        Assert.That(o.Imax, Is.EqualTo(d.Imax));
+        Assert.That(o.Imin, Is.EqualTo(d.Imin));
+        Assert.That(o.Lmax, Is.EqualTo(d.Lmax));
+        Assert.That(o.Lmin, Is.EqualTo(d.Lmin));
+        Assert.That(o.Mmax, Is.EqualTo(d.Mmax));
+        Assert.That(o.Mmin, Is.EqualTo(d.Mmin));
+        Assert.That(o.UImax, Is.EqualTo(d.UImax));
+        Assert.That(o.ULmax, Is.EqualTo(d.ULmax));
 
-        Assert.AreEqual(d.Fmax, o.Fmax);
-        Assert.AreEqual(d.Fmin, o.Fmin);
-        Assert.AreEqual(d.MmaxDec, o.MmaxDec);
-        Assert.AreEqual(d.MminDec, o.MminDec);
+        Assert.That(o.Fmax, Is.EqualTo(d.Fmax));
+        Assert.That(o.Fmin, Is.EqualTo(d.Fmin));
+        Assert.That(o.MmaxDec, Is.EqualTo(d.MmaxDec));
+        Assert.That(o.MminDec, Is.EqualTo(d.MminDec));
     }
 
 
@@ -3016,10 +3071,10 @@ public class tests
         TestData data2 = Json5.ToObject<TestData>(jsonData);
 
         // OK, since data member name is "foo" which is all in lower case
-        Assert.AreEqual(data.Foo, data2.Foo);
+        Assert.That(data2.Foo, Is.EqualTo(data.Foo));
 
         // Fails, since data member name is "Bar", but the library looks for "bar" when setting the value
-        Assert.AreEqual(data.Bar, data2.Bar);
+        Assert.That(data2.Bar, Is.EqualTo(data.Bar));
     }
 
 
@@ -3030,7 +3085,7 @@ public class tests
         string s = Json5.ToJson(new test[] { new test(), new test() }, new Json5Parameters { UseExtensions = false });
         test[] o = Json5.ToObject<test[]>(s);
         Console.WriteLine(o.GetType().ToString());
-        Assert.AreEqual(typeof(test[]), o.GetType());
+        Assert.That(o.GetType(), Is.EqualTo(typeof(test[])));
     }
     [Test]
     public static void ArrayOfObjectsWithoutTypeInfoToObjectTyped()
@@ -3038,7 +3093,7 @@ public class tests
         string s = Json5.ToJson(new test[] { new test(), new test() });
         test[] o = Json5.ToObject<test[]>(s);
         Console.WriteLine(o.GetType().ToString());
-        Assert.AreEqual(typeof(test[]), o.GetType());
+        Assert.That(o.GetType(), Is.EqualTo(typeof(test[])));
     }
     [Test]
     public static void ArrayOfObjectsWithTypeInfoToObject()
@@ -3048,7 +3103,7 @@ public class tests
         object o = Json5.ToObject(s);
         Console.WriteLine(o.GetType().ToString());
         List<object> i = o as List<object>;
-        Assert.AreEqual(typeof(test), i[0].GetType());
+        Assert.That(i[0].GetType(), Is.EqualTo(typeof(test)));
     }
 
     public class nskeys
@@ -3067,23 +3122,23 @@ public class tests
         string s = "{name:\"m:e\", age   \t:42, \"address\":\"here\"}";
         nskeys o = Json5.ToObject<nskeys>(s, new Json5Parameters { UseExtensions = true });
         //Console.WriteLine("t1");
-        Assert.AreEqual("m:e", o.name);
-        Assert.AreEqual("here", o.address);
-        Assert.AreEqual(42, o.age);
+        Assert.That(o.name, Is.EqualTo("m:e"));
+        Assert.That(o.address, Is.EqualTo("here"));
+        Assert.That(o.age, Is.EqualTo(42));
 
         s = "{name  \t  :\"me\", age : 42, address  :\"here\"}";
         o = Json5.ToObject<nskeys>(s, new Json5Parameters { UseExtensions = true });
         //Console.WriteLine("t2");
-        Assert.AreEqual("me", o.name);
-        Assert.AreEqual("here", o.address);
-        Assert.AreEqual(42, o.age);
+        Assert.That(o.name, Is.EqualTo("me"));
+        Assert.That(o.address, Is.EqualTo("here"));
+        Assert.That(o.age, Is.EqualTo(42));
 
         s = "{    name   :\"me\", age : 42, address :    \"here\"}";
         o = Json5.ToObject<nskeys>(s, new Json5Parameters { UseExtensions = true });
         //Console.WriteLine("t3");
-        Assert.AreEqual("me", o.name);
-        Assert.AreEqual("here", o.address);
-        Assert.AreEqual(42, o.age);
+        Assert.That(o.name, Is.EqualTo("me"));
+        Assert.That(o.address, Is.EqualTo("here"));
+        Assert.That(o.age, Is.EqualTo(42));
     }
 
     public class cis
@@ -3105,8 +3160,8 @@ public class tests
         Dictionary<string, Dictionary<string, string>> o = Json5.ToObject<Dictionary<string, Dictionary<string, string>>>(s);
         Dictionary<string, string> v = o["Section1"];
 
-        Assert.AreEqual(5, v.Count);
-        Assert.AreEqual("Value2", v["Key2"]);
+        Assert.That(v.Count, Is.EqualTo(5));
+        Assert.That(v["Key2"], Is.EqualTo("Value2"));
     }
 
     public class readonlyProps
@@ -3132,8 +3187,8 @@ public class tests
         string s = Json5.ToJson(dto);
         readonlyProps o = Json5.ToObject<readonlyProps>(s);
 
-        Assert.IsNotNull(o);
-        CollectionAssert.AreEqual(dto.Collection, o.Collection);
+        ClassicAssert.IsNotNull(o);
+        Assert.That(o.Collection, Is.EqualTo(dto.Collection));
     }
 
     public class nsb
@@ -3150,11 +3205,11 @@ public class tests
         string s = "{'one':1,'two':'1','three':'true','four':'on','five':'yes'}".Replace("\'", "\"");
 
         nsb o = Json5.ToObject<nsb>(s);
-        Assert.AreEqual(true, o.one);
-        Assert.AreEqual(true, o.two);
-        Assert.AreEqual(true, o.three);
-        Assert.AreEqual(true, o.four);
-        Assert.AreEqual(true, o.five);
+        Assert.That(o.one, Is.EqualTo(true));
+        Assert.That(o.two, Is.EqualTo(true));
+        Assert.That(o.three, Is.EqualTo(true));
+        Assert.That(o.four, Is.EqualTo(true));
+        Assert.That(o.five, Is.EqualTo(true));
     }
 
     private class npc
@@ -3170,8 +3225,8 @@ public class tests
         p.b = 20;
         string s = Json5.ToJson(p);
         npc o = (npc)Json5.ToObject(s);
-        Assert.AreEqual(10, o.a);
-        Assert.AreEqual(20, o.b);
+        Assert.That(o.a, Is.EqualTo(10));
+        Assert.That(o.b, Is.EqualTo(20));
     }
 
     public class Item
@@ -3215,7 +3270,7 @@ public class tests
 
         DateTime d = Json5.ToObject<DateTime>(s, new Json5Parameters { UseUTCDateTime = false, UseExtensions = true });
 
-        Assert.AreEqual(9, d.Hour);
+        Assert.That(d.Hour, Is.EqualTo(9));
     }
 
     [Test]
@@ -3228,8 +3283,8 @@ public class tests
 
         Dictionary<int, List<double>> o = Json5.ToObject<Dictionary<int, List<double>>>(s, new Json5Parameters { AutoConvertStringToNumbers = true, UseExtensions = true });
 
-        Assert.AreEqual(2, o.Count);
-        Assert.AreEqual(1.1, o[1][0]);
+        Assert.That(o.Count, Is.EqualTo(2));
+        Assert.That(o[1][0], Is.EqualTo(1.1));
     }
 
     [Test]
@@ -3243,8 +3298,8 @@ public class tests
 
         Dictionary<int, double[]> o = Json5.ToObject<Dictionary<int, double[]>>(s, new Json5Parameters { AutoConvertStringToNumbers = true, UseExtensions = true });
 
-        Assert.AreEqual(2, o.Count);
-        Assert.AreEqual(1.1, o[1][0]);
+        Assert.That(o.Count, Is.EqualTo(2));
+        Assert.That(o[1][0], Is.EqualTo(1.1));
     }
 
     public class nt
@@ -3258,11 +3313,11 @@ public class tests
     {
         string s = "{'a':+1234567}".Replace("'", "\"");
         nt o = Json5.ToObject<nt>(s);
-        Assert.AreEqual(1234567L, o.a);
+        Assert.That(o.a, Is.EqualTo(1234567L));
 
         s = "{'a':-1234567}".Replace("'", "\"");
         o = Json5.ToObject<nt>(s);
-        Assert.AreEqual(-1234567L, o.a);
+        Assert.That(o.a, Is.EqualTo(-1234567L));
     }
 
     public class rofield
@@ -3278,18 +3333,18 @@ public class tests
 
         string s = Json5.ToJson(o, new Json5Parameters { ShowReadOnlyProperties = false, UseExtensions = true });
         Console.WriteLine(s);
-        Assert.False(s.Contains("age"));
+        ClassicAssert.False(s.Contains("age"));
 
         s = Json5.ToJson(o, new Json5Parameters { ShowReadOnlyProperties = true, UseExtensions = true });
         Console.WriteLine(s);
-        Assert.True(s.Contains("age"));
+        ClassicAssert.True(s.Contains("age"));
     }
 
     [Test]
     public static void intarr()
     {
         int[] o = Json5.ToObject<int[]>("[1,2,-3]");
-        Assert.AreEqual(o[2], -3);
+        Assert.That(-3, Is.EqualTo(o[2]));
     }
 
 
@@ -3338,8 +3393,8 @@ public class tests
         string json = Json5.ToJsonPretty(circles);//, jp);
         Console.WriteLine(json);
         Circle[] oc = Json5.ToObject<Circle[]>(json, jp);
-        Assert.AreEqual(3, oc.Length);
-        Assert.AreEqual(oc[2].Center.Y, 1);
+        Assert.That(oc.Length, Is.EqualTo(3));
+        Assert.That(1, Is.EqualTo(oc[2].Center.Y));
     }
     [Test]
     public static void refchecking2()
@@ -3355,8 +3410,8 @@ public class tests
         string json = Json5.ToJsonPretty(circles, jp);
         Console.WriteLine(json);
         Circle[] oc = Json5.ToObject<Circle[]>(json, jp);
-        Assert.AreEqual(3, oc.Length);
-        Assert.AreEqual(oc[2].Center.Y, 1);
+        Assert.That(oc.Length, Is.EqualTo(3));
+        Assert.That(1, Is.EqualTo(oc[2].Center.Y));
     }
 
     [Test]
@@ -3388,16 +3443,16 @@ public class tests
         {
             object o = Json5.ToObject(s, new Json5Parameters { BadListTypeChecking = true, UseExtensions = true });
             Console.WriteLine(o.GetType().Name);
-            //Assert.AreEqual(o.GetType().Name, "");
+            //ClassicAssert.AreEqual(o.GetType().Name, "");
             fail = true;
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
-            //Assert.Pass();
+            //ClassicAssert.Pass();
         }
         if (fail)
-            Assert.Fail();
+            ClassicAssert.Fail();
     }
 
     [Test]
@@ -3408,7 +3463,7 @@ public class tests
         string s = Json5.ToJson(o1, new Json5Parameters() { UseExtensions = true });
         Console.WriteLine(s);
         NullTestClass o2 = Json5.ToObject<NullTestClass>(s);
-        Assert.AreEqual(o1.Test, o2.Test);
+        Assert.That(o2.Test, Is.EqualTo(o1.Test));
     }
 
     public class NullTestClass
@@ -3429,15 +3484,15 @@ public class tests
     {
         string s = "{'a':.314}".Replace("'", "\"");
         Dictionary<string, object> o = (Dictionary<string,object>)Json5.Parse(s);
-        Assert.AreEqual(0.314, (decimal)o["a"]);
+        Assert.That((decimal)o["a"], Is.EqualTo(0.314));
 
         s = "{'a':-.314}".Replace("'", "\"");
         o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(-0.314, (decimal)o["a"]);
+        Assert.That((decimal)o["a"], Is.EqualTo(-0.314));
 
         s = "{'a':0.314}".Replace("'", "\"");
         o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(0.314, (decimal)o["a"]);
+        Assert.That((decimal)o["a"], Is.EqualTo(0.314));
     }
 
     [Test]
@@ -3445,30 +3500,30 @@ public class tests
     {
         string s = "{'a':314.}".Replace("'", "\"");
         Dictionary<string, object> o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(314, (decimal)o["a"]);
+        Assert.That((decimal)o["a"], Is.EqualTo(314));
     }
 
     [Test]
     public static void json5_infinity()
     {
-        Assert.AreEqual(double.PositiveInfinity, Json5.ToObject<double>("Infinity"));
-        Assert.AreEqual(double.PositiveInfinity, Json5.ToObject<double>("+Infinity"));
-        Assert.AreEqual(double.NegativeInfinity, Json5.ToObject<double>("-Infinity"));
+        Assert.That(Json5.ToObject<double>("Infinity"), Is.EqualTo(double.PositiveInfinity));
+        Assert.That(Json5.ToObject<double>("+Infinity"), Is.EqualTo(double.PositiveInfinity));
+        Assert.That(Json5.ToObject<double>("-Infinity"), Is.EqualTo(double.NegativeInfinity));
 
         string s = "{'a':Infinity,'b':1,}".Replace("'", "\"");
         Dictionary<string, object> o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(double.PositiveInfinity, (double)o["a"]);
-        Assert.AreEqual(1, (long)o["b"]);
+        Assert.That((double)o["a"], Is.EqualTo(double.PositiveInfinity));
+        Assert.That((long)o["b"], Is.EqualTo(1));
 
         s = "{'a':+Infinity,'b':1,}".Replace("'", "\"");
         o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(double.PositiveInfinity, (double)o["a"]);
-        Assert.AreEqual(1, (long)o["b"]);
+        Assert.That((double)o["a"], Is.EqualTo(double.PositiveInfinity));
+        Assert.That((long)o["b"], Is.EqualTo(1));
 
         s = "{'a':-Infinity,'b':1,}".Replace("'", "\"");
         o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(double.NegativeInfinity, (double)o["a"]);
-        Assert.AreEqual(1, (long)o["b"]);
+        Assert.That((double)o["a"], Is.EqualTo(double.NegativeInfinity));
+        Assert.That((long)o["b"], Is.EqualTo(1));
     }
 
     [Test]
@@ -3476,24 +3531,24 @@ public class tests
     {
         string s = "[1,2,3,]";
         List<object> o = (List<object>)Json5.Parse(s);
-        Assert.AreEqual(3, o.Count);
+        Assert.That(o.Count, Is.EqualTo(3));
 
         s = "{'a':1, 'b':2, 'c': 3,}".Replace("'", "\"");
         Dictionary<string, object> oo = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(3, oo.Count);
+        Assert.That(oo.Count, Is.EqualTo(3));
     }
 
     [Test]
     public static void json5_nan()
     {
-        Assert.AreEqual(double.NaN, Json5.ToObject<double>("NaN"));
-        Assert.AreEqual(double.NaN, Json5.ToObject<double>("+NaN"));
-        Assert.AreEqual(double.NaN, Json5.ToObject<double>("-NaN"));
+        Assert.That(Json5.ToObject<double>("NaN"), Is.EqualTo(double.NaN));
+        Assert.That(Json5.ToObject<double>("+NaN"), Is.EqualTo(double.NaN));
+        Assert.That(Json5.ToObject<double>("-NaN"), Is.EqualTo(double.NaN));
         string s = "{'a':-NaN,'b':1,}".Replace("'", "\"");
         Dictionary<string, object> o = (Dictionary<string, object>)Json5.Parse(s);
         Console.WriteLine(o["a"]);
-        Assert.AreEqual(double.NaN, (double)o["a"]);
-        Assert.AreEqual(1, (long)o["b"]);
+        Assert.That((double)o["a"], Is.EqualTo(double.NaN));
+        Assert.That((long)o["b"], Is.EqualTo(1));
     }
 
     [Test]
@@ -3508,18 +3563,18 @@ public class tests
 }
 ".Replace("'", "\"");
         Dictionary<string, object> o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(1, (long)o["a"]);
-        Assert.AreEqual(2, (long)o["b"]);
+        Assert.That((long)o["a"], Is.EqualTo(1));
+        Assert.That((long)o["b"], Is.EqualTo(2));
     }
 
     [Test]
     public static void json5_hex_numbers()
     {
-        Assert.AreEqual(0xff, Json5.ToObject<long>("0xff"));
-        Assert.AreEqual(0xffff, Json5.ToObject<long>("0xffff"));
-        Assert.AreEqual(0xffffff, Json5.ToObject<long>("0xffffff"));
-        Assert.AreEqual(0xffffffff, Json5.ToObject<long>("0xffffffff"));
-        Assert.AreEqual(0x12345678, Json5.ToObject<long>("0x12345678"));
+        Assert.That(Json5.ToObject<long>("0xff"), Is.EqualTo(0xff));
+        Assert.That(Json5.ToObject<long>("0xffff"), Is.EqualTo(0xffff));
+        Assert.That(Json5.ToObject<long>("0xffffff"), Is.EqualTo(0xffffff));
+        Assert.That(Json5.ToObject<long>("0xffffffff"), Is.EqualTo(0xffffffff));
+        Assert.That(Json5.ToObject<long>("0x12345678"), Is.EqualTo(0x12345678));
         string s = @"{
 // comment
     'a' : /*hello
@@ -3528,23 +3583,23 @@ public class tests
 }
 ".Replace("'", "\"");
         Dictionary<string, object> o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(0x11, (long)o["a"]);
-        Assert.AreEqual(0xFF2, (long)o["b"]);
+        Assert.That((long)o["a"], Is.EqualTo(0x11));
+        Assert.That((long)o["b"], Is.EqualTo(0xFF2));
     }
 
     [Test]
     public static void json5_single_double_strings()
     {
-        Assert.AreEqual("non escaped normal", Json5.Parse("\"non escaped normal\""));
-        Assert.AreEqual("non escaped normal - don't", Json5.Parse("\"non escaped normal - don't\""));
+        Assert.That(Json5.Parse("\"non escaped normal\""), Is.EqualTo("non escaped normal"));
+        Assert.That(Json5.Parse("\"non escaped normal - don't\""), Is.EqualTo("non escaped normal - don't"));
 
-        Assert.AreEqual("non escaped single", Json5.Parse("'non escaped single'"));
-        Assert.AreEqual("non escaped single \"", Json5.Parse("'non escaped single \"'"));
+        Assert.That(Json5.Parse("'non escaped single'"), Is.EqualTo("non escaped single"));
+        Assert.That(Json5.Parse("'non escaped single \"'"), Is.EqualTo("non escaped single \""));
 
-        Assert.AreEqual("escaped single \"with double inside\"", Json5.Parse("'escaped single \"with double inside\"'"));
-        Assert.AreEqual("escaped single 'with single inside'", Json5.Parse("'escaped single \\\'with single inside\\\''"));
-        Assert.AreEqual("don't", Json5.Parse("\"don't\"")); // "don't"
-        Assert.AreEqual("don't", Json5.Parse(@"'don\'t'")); // 'don\'t'
+        Assert.That(Json5.Parse("'escaped single \"with double inside\"'"), Is.EqualTo("escaped single \"with double inside\""));
+        Assert.That(Json5.Parse("'escaped single \\\'with single inside\\\''"), Is.EqualTo("escaped single 'with single inside'"));
+        Assert.That(Json5.Parse("\"don't\""), Is.EqualTo("don't")); // "don't"
+        Assert.That(Json5.Parse(@"'don\'t'"), Is.EqualTo("don't")); // 'don\'t'
         string s = @"{
                    // comment
                    'a' : /*hello
@@ -3553,18 +3608,18 @@ public class tests
                    'c': 'hello there'
                   }";
         Dictionary<string, object> o = (Dictionary<string, object>)Json5.Parse(s);
-        Assert.AreEqual(0x11, (long)o["a"]);
-        Assert.AreEqual(0xFF2, (long)o["b"]);
-        Assert.AreEqual("hello there", (string)o["c"]);
+        Assert.That((long)o["a"], Is.EqualTo(0x11));
+        Assert.That((long)o["b"], Is.EqualTo(0xFF2));
+        Assert.That((string)o["c"], Is.EqualTo("hello there"));
 
-        //Assert.Fail();
+        //ClassicAssert.Fail();
     }
 
     [Test]
     public static void json5_string_escapes()
     {
-        Assert.AreEqual("AC/DC", Json5.Parse(@"'\A\C\/\D\C'"));
-        //Assert.AreEqual("123456789", JSON.Parse(@"'\1\2\3\4\5\6\7\8\9'"));
+        Assert.That(Json5.Parse(@"'\A\C\/\D\C'"), Is.EqualTo("AC/DC"));
+        //ClassicAssert.AreEqual("123456789", JSON.Parse(@"'\1\2\3\4\5\6\7\8\9'"));
     }
 
     [Test]
@@ -3575,11 +3630,11 @@ inuous line.\
 '";
         object ss = Json5.Parse(s);
         Console.WriteLine(ss);
-        Assert.AreEqual("this is a continuous line.", ss);
+        Assert.That(ss, Is.EqualTo("this is a continuous line."));
 
         s = @"'abc\
    message'";
-        Assert.AreEqual("abc   message", Json5.Parse(s));
+        Assert.That(Json5.Parse(s), Is.EqualTo("abc   message"));
 
         try
         {
@@ -3587,14 +3642,14 @@ inuous line.\
 hello
 there
 '");
-            Assert.Fail();
+            ClassicAssert.Fail();
         }
         catch (Exception ex)
         {
-            Assert.AreEqual(typeof(Exception), ex.GetType());
-            Assert.AreEqual("Illegal newline character in string at index 1", ex.Message);
+            Assert.That(ex.GetType(), Is.EqualTo(typeof(Exception)));
+            Assert.That(ex.Message, Is.EqualTo("Illegal newline character in string at index 1"));
         }
-        //Assert.Fail();
+        //ClassicAssert.Fail();
     }
 
     public struct sstruct
@@ -3618,7 +3673,7 @@ there
         DateTime dt = new DateTime(2021, 1, 10, 12, 0, 0, DateTimeKind.Utc);
         string js = Json5.ToJson(dt);
         Console.WriteLine(js);
-        Assert.AreEqual(12 , Json5.ToObject<DateTime>(js, new Json5Parameters() { UseUTCDateTime = true }).Hour);
+        Assert.That(Json5.ToObject<DateTime>(js, new Json5Parameters() { UseUTCDateTime = true }).Hour, Is.EqualTo(12));
     }
     [Test]
     public static void UTCDateFalse()
@@ -3627,7 +3682,7 @@ there
         string js = Json5.ToJson(dt);
         Console.WriteLine(js);
 		DateTime dt2 = DateTime.SpecifyKind(dt.ToLocalTime(), DateTimeKind.Utc);
-        Assert.AreEqual(dt2.Hour, Json5.ToObject<DateTime>(js, new Json5Parameters() { UseUTCDateTime = false }).Hour);
+        Assert.That(Json5.ToObject<DateTime>(js, new Json5Parameters() { UseUTCDateTime = false }).Hour, Is.EqualTo(dt2.Hour));
     }
     //[Test]
     //public static void ma()
@@ -3700,126 +3755,126 @@ there
 
         try
         {
-            Assert.AreEqual("{}", Json5.ToJson(Json5.Parse("{}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{}")), Is.EqualTo("{}"));
             Console.WriteLine("parses empty objects");
 
-            Assert.AreEqual("{\"a\":1}", Json5.ToJson(Json5.Parse("{\"a\":1}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{\"a\":1}")), Is.EqualTo("{\"a\":1}"));
             Console.WriteLine("parses double string property names");
 
-            Assert.AreEqual("{\"a\":1}", Json5.ToJson(Json5.Parse("{'a':1}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{'a':1}")), Is.EqualTo("{\"a\":1}"));
             Console.WriteLine("parses single string property names");
 
-            Assert.AreEqual("{\"a\":1}", Json5.ToJson(Json5.Parse("{a:1}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{a:1}")), Is.EqualTo("{\"a\":1}"));
             Console.WriteLine("parses unquoted property names");
 
-            Assert.AreEqual("{\"$_\":1,\"_$\":2,\"a\u200C\":3}", Json5.ToJson(Json5.Parse("{$_:1,_$:2,a\u200C:3}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{$_:1,_$:2,a\u200C:3}")), Is.EqualTo("{\"$_\":1,\"_$\":2,\"a\u200C\":3}"));
             Console.WriteLine("parses special character property names");
 
-            Assert.AreEqual("{\"ùńîċõďë\":9}", Json5.ToJson(Json5.Parse("{ùńîċõďë:9}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{ùńîċõďë:9}")), Is.EqualTo("{\"ùńîċõďë\":9}"));
             Console.WriteLine("parses unicode property names");
 
-            Assert.AreEqual("{\"ab\":1,\"$_\":2,\"_$\":3}", Json5.ToJson(Json5.Parse("{\\u0061\\u0062:1,\\u0024\\u005F:2,\\u005F\\u0024:3}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{\\u0061\\u0062:1,\\u0024\\u005F:2,\\u005F\\u0024:3}")), Is.EqualTo("{\"ab\":1,\"$_\":2,\"_$\":3}"));
             Console.WriteLine("parses escaped property names");
 
-            Assert.AreEqual("{\"abc\":1,\"def\":2}", Json5.ToJson(Json5.Parse("{abc:1,def:2}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{abc:1,def:2}")), Is.EqualTo("{\"abc\":1,\"def\":2}"));
             Console.WriteLine("parses multiple properties");
 
-            Assert.AreEqual("{\"a\":{\"b\":2}}", Json5.ToJson(Json5.Parse("{a:{b:2}}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{a:{b:2}}")), Is.EqualTo("{\"a\":{\"b\":2}}"));
             Console.WriteLine("parses nested objects");
 
-            Assert.AreEqual("[]", Json5.ToJson(Json5.Parse("[]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[]")), Is.EqualTo("[]"));
             Console.WriteLine("parses empty arrays");
 
-            Assert.AreEqual("[1]", Json5.ToJson(Json5.Parse("[1]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[1]")), Is.EqualTo("[1]"));
             Console.WriteLine("parses array values");
 
-            Assert.AreEqual("[1,2]", Json5.ToJson(Json5.Parse("[1,2]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[1,2]")), Is.EqualTo("[1,2]"));
             Console.WriteLine("parses multiple array values");
 
-            Assert.AreEqual("[1,[2,3]]", Json5.ToJson(Json5.Parse("[1,[2,3]]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[1,[2,3]]")), Is.EqualTo("[1,[2,3]]"));
             Console.WriteLine("parses nested arrays");
 
-            Assert.AreEqual("null", Json5.ToJson(Json5.Parse("null")));
+            Assert.That(Json5.ToJson(Json5.Parse("null")), Is.EqualTo("null"));
             Console.WriteLine("parses nulls");
 
-            Assert.AreEqual("true", Json5.ToJson(Json5.Parse("true")));
+            Assert.That(Json5.ToJson(Json5.Parse("true")), Is.EqualTo("true"));
             Console.WriteLine("parses true");
 
-            Assert.AreEqual("false", Json5.ToJson(Json5.Parse("false")));
+            Assert.That(Json5.ToJson(Json5.Parse("false")), Is.EqualTo("false"));
             Console.WriteLine("parses false");
 
-            Assert.AreEqual("[0,0,0]", Json5.ToJson(Json5.Parse("[0,0.,0e0]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[0,0.,0e0]")), Is.EqualTo("[0,0,0]"));
             Console.WriteLine("parses leading zeroes");
 
-            Assert.AreEqual("[1,23,456,7890]", Json5.ToJson(Json5.Parse("[1,23,456,7890]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[1,23,456,7890]")), Is.EqualTo("[1,23,456,7890]"));
             Console.WriteLine("parses integers");
 
-            Assert.AreEqual("[-1,2,-0.1,-0]", Json5.ToJson(Json5.Parse("[-1,+2,-.1,-0]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[-1,+2,-.1,-0]")), Is.EqualTo("[-1,2,-0.1,-0]"));
             Console.WriteLine("parses signed numbers");
 
-            Assert.AreEqual("[0.1,0.23]", Json5.ToJson(Json5.Parse("[.1,.23]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[.1,.23]")), Is.EqualTo("[0.1,0.23]"));
             Console.WriteLine("parses leading decimal points");
 
-            Assert.AreEqual("[1.0,1.23]", Json5.ToJson(Json5.Parse("[1.0,1.23]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[1.0,1.23]")), Is.EqualTo("[1.0,1.23]"));
             Console.WriteLine("parses fractional numbers");
 
-            Assert.AreEqual("[1,10,10,1,1.1,0.1,10]", Json5.ToJson(Json5.Parse("[1e0,1e1,1e01,1.e0,1.1e0,1e-1,1e+1]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[1e0,1e1,1e01,1.e0,1.1e0,1e-1,1e+1]")), Is.EqualTo("[1,10,10,1,1.1,0.1,10]"));
             Console.WriteLine("parses exponents");
 
-            Assert.AreEqual("[1,16,255,255]", Json5.ToJson(Json5.Parse("[0x1,0x10,0xff,0xFF]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[0x1,0x10,0xff,0xFF]")), Is.EqualTo("[1,16,255,255]"));
             Console.WriteLine("parses hexadecimal numbers");
 
-            Assert.AreEqual("[Infinity,-Infinity]", Json5.ToJson(Json5.Parse("[Infinity,-Infinity]")));
+            Assert.That(Json5.ToJson(Json5.Parse("[Infinity,-Infinity]")), Is.EqualTo("[Infinity,-Infinity]"));
             Console.WriteLine("parses signed and unsigned Infinity");
 
-            Assert.AreEqual("NaN", Json5.ToJson(Json5.Parse("NaN")));
+            Assert.That(Json5.ToJson(Json5.Parse("NaN")), Is.EqualTo("NaN"));
             Console.WriteLine("parses NaN");
 
-            Assert.AreEqual("NaN", Json5.ToJson(Json5.Parse("-NaN")));
+            Assert.That(Json5.ToJson(Json5.Parse("-NaN")), Is.EqualTo("NaN"));
             Console.WriteLine("parses signed NaN");
 
-            Assert.AreEqual("1", Json5.ToJson(Json5.Parse("1")));
+            Assert.That(Json5.ToJson(Json5.Parse("1")), Is.EqualTo("1"));
             Console.WriteLine("parses 1");
 
-            Assert.AreEqual("1.23E+100", Json5.ToJson(Json5.Parse("+1.23e100"))); //changed
+            Assert.That(Json5.ToJson(Json5.Parse("+1.23e100")), Is.EqualTo("1.23E+100")); //changed
             Console.WriteLine("parses +1.23e100");
 
-            Assert.AreEqual("1", Json5.ToJson(Json5.Parse("0x1"))); //changed
+            Assert.That(Json5.ToJson(Json5.Parse("0x1")), Is.EqualTo("1")); //changed
             Console.WriteLine("parses bare hexadecimal number");
 
-            Assert.AreEqual("-1375488932539311409843695", Json5.ToJson(Json5.Parse("-0x0123456789abcdefABCDEF"))); //changed
+            Assert.That(Json5.ToJson(Json5.Parse("-0x0123456789abcdefABCDEF")), Is.EqualTo("-1375488932539311409843695")); //changed
             Console.WriteLine("parses bare long hexadecimal number");
 
-            Assert.AreEqual("\"abc\"", Json5.ToJson(Json5.Parse("\"abc\"")));
+            Assert.That(Json5.ToJson(Json5.Parse("\"abc\"")), Is.EqualTo("\"abc\""));
             Console.WriteLine("parses double quoted strings");
 
-            Assert.AreEqual("\"abc\"", Json5.ToJson(Json5.Parse("'abc'")));
+            Assert.That(Json5.ToJson(Json5.Parse("'abc'")), Is.EqualTo("\"abc\""));
             Console.WriteLine("parses single quoted strings");
 
-            Assert.AreEqual("[\"\\\"\",\"'\"]", Json5.ToJson(Json5.Parse("['\"',\"'\"]")));
+            Assert.That(Json5.ToJson(Json5.Parse("['\"',\"'\"]")), Is.EqualTo("[\"\\\"\",\"'\"]"));
             Console.WriteLine("parses quotes in strings");
 
-            Assert.AreEqual("\b\f\n\r\t\v\0\x0f\u01FF\a'\"", Json5.Parse("'\\b\\f\\n\\r\\t\\v\\0\\x0f\\u01fF\\\n\\\r\n\\\r\\\u2028\\\u2029\\a\\'\\\"'"));
+            Assert.That(Json5.Parse("'\\b\\f\\n\\r\\t\\v\\0\\x0f\\u01fF\\\n\\\r\n\\\r\\\u2028\\\u2029\\a\\'\\\"'"), Is.EqualTo("\b\f\n\r\t\v\0\x0f\u01FF\a'\""));
             Console.WriteLine("parses escaped characters");
 
-            Assert.AreEqual("\"\\b\\f\\n\\r\\t\\v\\0\\u000F\u01ff\\a'\\\"\"", Json5.ToJson(Json5.Parse("'\\b\\f\\n\\r\\t\\v\\0\\x0f\\u01fF\\\n\\\r\n\\\r\\\u2028\\\u2029\\a\\'\\\"'")));
+            Assert.That(Json5.ToJson(Json5.Parse("'\\b\\f\\n\\r\\t\\v\\0\\x0f\\u01fF\\\n\\\r\n\\\r\\\u2028\\\u2029\\a\\'\\\"'")), Is.EqualTo("\"\\b\\f\\n\\r\\t\\v\\0\\u000F\u01ff\\a'\\\"\""));
             Console.WriteLine("parses escaped characters (pt. 2)");
 
             List<string> warnings = new List<string>();
-            Assert.AreEqual("\"\\u2028\\u2029\"", Json5.ToJson(Json5.Parse("'\u2028\u2029'", warnings)));
-            Assert.AreEqual(new[] { "Warning: invalid ECMAScript at index 1 with character \\u2028 in string.", "Warning: invalid ECMAScript at index 2 with character \\u2029 in string." }, warnings);
+            Assert.That(Json5.ToJson(Json5.Parse("'\u2028\u2029'", warnings)), Is.EqualTo("\"\\u2028\\u2029\""));
+            Assert.That(warnings, Is.EqualTo(new[] { "Warning: invalid ECMAScript at index 1 with character \\u2028 in string.", "Warning: invalid ECMAScript at index 2 with character \\u2029 in string." }));
             Console.WriteLine("parses line and paragraph separators with a warning");
 
-            Assert.AreEqual("{}", Json5.ToJson(Json5.Parse("{//comment\n}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{//comment\n}")), Is.EqualTo("{}"));
             Console.WriteLine("parses single-line comments");
 
-            Assert.AreEqual("{}", Json5.ToJson(Json5.Parse("{}//comment")));
+            Assert.That(Json5.ToJson(Json5.Parse("{}//comment")), Is.EqualTo("{}"));
             Console.WriteLine("parses single-line comments at end of input");
 
-            Assert.AreEqual("{}", Json5.ToJson(Json5.Parse("{/*comment\n** */}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{/*comment\n** */}")), Is.EqualTo("{}"));
             Console.WriteLine("parses multi-line comments");
 
-            Assert.AreEqual("{}", Json5.ToJson(Json5.Parse("{\t\v\f \u00A0\uFEFF\n\r\u2028\u2029\u2003}")));
+            Assert.That(Json5.ToJson(Json5.Parse("{\t\v\f \u00A0\uFEFF\n\r\u2028\u2029\u2003}")), Is.EqualTo("{}"));
             Console.WriteLine("parses whitespace");
         }
         finally
@@ -4016,22 +4071,22 @@ there
             AssertException(typeof(Exception), "\\u escape sequence ended prematurely (end of input)", () => Json5.Parse("\"\\u\""));
             Console.WriteLine("\"\\u\" is illegal due to the end of the string");
 
-            Assert.AreEqual("\0", Json5.Parse("\"\\0\""));
+            Assert.That(Json5.Parse("\"\\0\""), Is.EqualTo("\0"));
             Console.WriteLine("Test for \\0");
 
-            Assert.AreEqual("{}", Json5.ToJson(Json5.Parse("{} ")));
+            Assert.That(Json5.ToJson(Json5.Parse("{} ")), Is.EqualTo("{}"));
             Console.WriteLine("Test for {}SPACE");
 
-            Assert.AreEqual("-0", Json5.ToJson(Json5.Parse("-0x0")));
+            Assert.That(Json5.ToJson(Json5.Parse("-0x0")), Is.EqualTo("-0"));
             Console.WriteLine("Test for -0x0 --> -0");
 
-            Assert.AreEqual(
+            Assert.That(
 #if NETFRAMEWORK || NET4 || NETCOREAPP && !NETCOREAPP3_0_OR_GREATER
                 "9.0144042682896313E+28"
 #else
-                "9.014404268289631E+28"
+                Json5.ToJson(Json5.Parse("+0x0123456789abcdefABCDEF0000"))
 #endif
-                , Json5.ToJson(Json5.Parse("+0x0123456789abcdefABCDEF0000")));
+                , Is.EqualTo("9.014404268289631E+28"));
             Console.WriteLine("Test for long hex number");
 
 			try
@@ -4056,7 +4111,7 @@ there
 				Console.WriteLine(".. is illegal inside of an object");
 			}
 
-            Assert.AreEqual(1e41, Json5.Parse("100000000000000000000000000000000000000000"));
+            Assert.That(Json5.Parse("100000000000000000000000000000000000000000"), Is.EqualTo(1e41));
             Console.WriteLine("Parses 100000000000000000000000000000000000000000");
         }
         finally
