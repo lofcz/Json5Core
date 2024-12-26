@@ -30,5 +30,8 @@
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <Optimize>true</Optimize>
     </PropertyGroup>
+    <ItemGroup>
+        <None Include="icon.jpeg" Pack="true" PackagePath=""/>
+    </ItemGroup>
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>
