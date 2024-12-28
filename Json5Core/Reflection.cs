@@ -409,13 +409,13 @@ namespace Json5Core
                     return FastCreateInstance(objtype);
                 }
 
-                ConstructorInfo? cinfo = objtype.GetConstructor(new Type[] { typeof(int) });
+                ConstructorInfo? cinfo = objtype.GetConstructor([typeof(int)]);
                 if (cinfo != null)
                 {
-                    DynamicMethod dynMethod = new DynamicMethod("_fcil", objtype, new Type[] { typeof(int) }, true);
+                    DynamicMethod dynMethod = new DynamicMethod("_fcil", objtype, [typeof(int)], true);
                     ILGenerator ilGen = dynMethod.GetILGenerator();
                     ilGen.Emit(OpCodes.Ldarg_0);
-                    ilGen.Emit(OpCodes.Newobj, objtype.GetConstructor(new Type[] { typeof(int) }));
+                    ilGen.Emit(OpCodes.Newobj, objtype.GetConstructor([typeof(int)]));
                     ilGen.Emit(OpCodes.Ret);
                     c = (CreateList)dynMethod.CreateDelegate(typeof(CreateList));
                     _conlistcache.Add(objtype, c);
@@ -617,7 +617,7 @@ namespace Json5Core
 
         internal static GenericGetter CreateGetField(Type type, FieldInfo fieldInfo)
         {
-            DynamicMethod dynamicGet = new DynamicMethod("_cgf", typeof(object), new Type[] { typeof(object) }, type, true);
+            DynamicMethod dynamicGet = new DynamicMethod("_cgf", typeof(object), [typeof(object)], type, true);
 
             ILGenerator il = dynamicGet.GetILGenerator();
 
@@ -651,7 +651,7 @@ namespace Json5Core
             if (getMethod == null)
                 return null;
 
-            DynamicMethod getter = new DynamicMethod("_cgm", typeof(object), new Type[] { typeof(object) }, type, true);
+            DynamicMethod getter = new DynamicMethod("_cgm", typeof(object), [typeof(object)], type, true);
 
             ILGenerator il = getter.GetILGenerator();
 
@@ -697,7 +697,7 @@ namespace Json5Core
             //if (ShowReadOnlyProperties)
             //    bf |= BindingFlags.NonPublic;
             PropertyInfo[] props = type.GetProperties(bf);
-            List<Getters> getters = new List<Getters>();
+            List<Getters> getters = [];
             foreach (PropertyInfo p in props)
             {
                 bool read_only = false;

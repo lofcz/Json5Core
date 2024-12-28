@@ -420,15 +420,19 @@ namespace Json5Core
             while (index < len)
             {
                 char c = p[index++];
-                if (c == '"')
-                    return;
-
-                if (c == '\\')
+                
+                switch (c)
                 {
-                    c = p[index++];
+                    case '"':
+                        return;
+                    case '\\':
+                    {
+                        c = p[index++];
 
-                    if (c == 'u')
-                        index += 4;
+                        if (c == 'u')
+                            index += 4;
+                        break;
+                    }
                 }
             }
         }
@@ -736,14 +740,13 @@ namespace Json5Core
 
         private uint ParseSingleChar(char c1, uint multipliyer, int additionalIndex)
         {
-            uint p1 = 0;
-            if (c1 >= '0' && c1 <= '9')
-                p1 = (uint)(c1 - '0') * multipliyer;
-            else if (c1 >= 'A' && c1 <= 'F')
-                p1 = (uint)((c1 - 'A') + 10) * multipliyer;
-            else if (c1 >= 'a' && c1 <= 'f')
-                p1 = (uint)((c1 - 'a') + 10) * multipliyer;
-            else throw new Exception($"Invalid hexadecimal character '{ c1 }' at index { index + additionalIndex }");
+            uint p1 = c1 switch
+            {
+                >= '0' and <= '9' => (uint)(c1 - '0') * multipliyer,
+                >= 'A' and <= 'F' => (uint)((c1 - 'A') + 10) * multipliyer,
+                >= 'a' and <= 'f' => (uint)((c1 - 'a') + 10) * multipliyer,
+                _ => throw new Exception($"Invalid hexadecimal character '{c1}' at index {index + additionalIndex}")
+            };
             return p1;
         }
 
@@ -776,8 +779,16 @@ namespace Json5Core
             bool run = true;
             bool hasDigits = false;
             bool hasDigits2 = false;
-            if (p[startIndex] == '.') dec = true;
-            else if (p[startIndex] is >= '0' and <= '9') hasDigits = true;
+            
+            switch (p[startIndex])
+            {
+                case '.':
+                    dec = true;
+                    break;
+                case >= '0' and <= '9':
+                    hasDigits = true;
+                    break;
+            }
             do
             {
                 if (index == _len)
@@ -912,11 +923,24 @@ namespace Json5Core
                     case '9':
                         digitsCount++;
                         index++;
-                        if (digitsCount < 15) num = (num << 4) + (c - '0');
-                        else if (digitsCount == 15) alternateNum = num * 16m + (c - '0');
-                        else if (digitsCount is > 15 and < 25) alternateNum = alternateNum * 16m + (c - '0');
-                        else if (digitsCount == 25) alternateNum2 = (double)alternateNum * 16d + (c - '0');
-                        else alternateNum2 = alternateNum2 * 16d + (c - '0');
+                        switch (digitsCount)
+                        {
+                            case < 15:
+                                num = (num << 4) + (c - '0');
+                                break;
+                            case 15:
+                                alternateNum = num * 16m + (c - '0');
+                                break;
+                            case < 25:
+                                alternateNum = alternateNum * 16m + (c - '0');
+                                break;
+                            case 25:
+                                alternateNum2 = (double)alternateNum * 16d + (c - '0');
+                                break;
+                            default:
+                                alternateNum2 = alternateNum2 * 16d + (c - '0');
+                                break;
+                        }
                         break;
                     case 'a':
                     case 'b':
@@ -926,11 +950,24 @@ namespace Json5Core
                     case 'f':
                         digitsCount++;
                         index++;
-                        if (digitsCount < 15) num = (num << 4) + (c - 'a') + 10;
-                        else if (digitsCount == 15) alternateNum = num * 16m + (c - 'a' + 10);
-                        else if (digitsCount is > 15 and < 25) alternateNum = alternateNum * 16m + (c - 'a' + 10);
-                        else if (digitsCount == 25) alternateNum2 = (double)alternateNum * 16d + (c - 'a' + 10);
-                        else alternateNum2 = alternateNum2 * 16d + (c - 'a' + 10);
+                        switch (digitsCount)
+                        {
+                            case < 15:
+                                num = (num << 4) + (c - 'a') + 10;
+                                break;
+                            case 15:
+                                alternateNum = num * 16m + (c - 'a' + 10);
+                                break;
+                            case < 25:
+                                alternateNum = alternateNum * 16m + (c - 'a' + 10);
+                                break;
+                            case 25:
+                                alternateNum2 = (double)alternateNum * 16d + (c - 'a' + 10);
+                                break;
+                            default:
+                                alternateNum2 = alternateNum2 * 16d + (c - 'a' + 10);
+                                break;
+                        }
                         break;
                     case 'A':
                     case 'B':
@@ -940,11 +977,24 @@ namespace Json5Core
                     case 'F':
                         digitsCount++;
                         index++;
-                        if (digitsCount < 15) num = (num << 4) + (c - 'A') + 10;
-                        else if (digitsCount == 15) alternateNum = num * 16m + (c - 'A' + 10);
-                        else if (digitsCount is > 15 and < 25) alternateNum = alternateNum * 16m + (c - 'A' + 10);
-                        else if (digitsCount == 25) alternateNum2 = (double)alternateNum * 16d + (c - 'A' + 10);
-                        else alternateNum2 = alternateNum2 * 16d + (c - 'A' + 10);
+                        switch (digitsCount)
+                        {
+                            case < 15:
+                                num = (num << 4) + (c - 'A') + 10;
+                                break;
+                            case 15:
+                                alternateNum = num * 16m + (c - 'A' + 10);
+                                break;
+                            case < 25:
+                                alternateNum = alternateNum * 16m + (c - 'A' + 10);
+                                break;
+                            case 25:
+                                alternateNum2 = (double)alternateNum * 16d + (c - 'A' + 10);
+                                break;
+                            default:
+                                alternateNum2 = alternateNum2 * 16d + (c - 'A' + 10);
+                                break;
+                        }
                         break;
                     default:
                         run = false;
@@ -961,9 +1011,12 @@ namespace Json5Core
                 alternateNum2 = -alternateNum2;
             }
 
-            if (digitsCount < 15) return num;
-            if (digitsCount < 25) return alternateNum;
-            return alternateNum2;
+            return digitsCount switch
+            {
+                < 15 => num,
+                < 25 => alternateNum,
+                _ => alternateNum2
+            };
         }
 
         private unsafe Token LookAhead(char* p)

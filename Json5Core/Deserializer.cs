@@ -20,10 +20,10 @@ internal class Deserializer
         _params = param.MakeCopy();
     }
 
-    private Json5Parameters _params;
+    private readonly Json5Parameters _params;
     private bool _usingglobals;
-    private Dictionary<object, int> _circobj; // = new Dictionary<object, int>();
-    private Dictionary<int, object> _cirrev = new Dictionary<int, object>();
+    private readonly Dictionary<object, int> _circobj; // = new Dictionary<object, int>();
+    private readonly Dictionary<int, object> _cirrev = new Dictionary<int, object>();
 
     public T? ToObject<T>(string json)
     {
@@ -90,9 +90,7 @@ internal class Deserializer
                     return RootArray(list, type);
                 if (type == typeof(Hashtable))
                     return RootHashTable(list);
-                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(HashSet<>))
-                    return RootSet(list, type);
-                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(ISet<>))
+                if (t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(HashSet<>) || t.GetGenericTypeDefinition() == typeof(ISet<>)))
                     return RootSet(list, type);
                 break;
             }
@@ -252,7 +250,7 @@ internal class Deserializer
         }
     }
 
-    private object RootArray(object parse, Type type)
+    private Array RootArray(object parse, Type type)
     {
         Type it = type.GetElementType();
         IList? o = (IList)Reflection.Instance.FastCreateInstance(typeof(List<>).MakeGenericType(it));
@@ -297,41 +295,44 @@ internal class Deserializer
 
 
         Type? arraytype = t2.GetElementType();
-        if (parse is Dictionary<string, object> objects)
+        
+        switch (parse)
         {
-            IDictionary o = (IDictionary)Reflection.Instance.FastCreateInstance(type);
-
-            foreach (KeyValuePair<string, object> kv in objects)
+            case Dictionary<string, object> objects:
             {
-                object v;
-                object k = ChangeType(kv.Key, t1);
+                IDictionary o = (IDictionary)Reflection.Instance.FastCreateInstance(type);
 
-                if (dictionary) // deserialize a dictionary
-                    v = RootDictionary(kv.Value, t2);
-                else if (isSet) // deserialize a set
-                    v = CreateSet(kv.Value, t2);
-                else if (kv.Value is Dictionary<string, object> value)
-                    v = ParseDictionary(value, null, t2, null);
+                foreach (KeyValuePair<string, object> kv in objects)
+                {
+                    object v;
+                    object k = ChangeType(kv.Key, t1);
 
-                else if (t2.IsArray && t2 != typeof(byte[]))
-                    v = CreateArray((List<object>)kv.Value, t2, arraytype, null);
+                    if (dictionary) // deserialize a dictionary
+                        v = RootDictionary(kv.Value, t2);
+                    else if (isSet) // deserialize a set
+                        v = CreateSet(kv.Value, t2);
+                    else if (kv.Value is Dictionary<string, object> value)
+                        v = ParseDictionary(value, null, t2, null);
 
-                else if (kv.Value is IList)
-                    v = CreateGenericList((List<object>)kv.Value, t2, t1, null);
+                    else if (t2.IsArray && t2 != typeof(byte[]))
+                        v = CreateArray((List<object>)kv.Value, t2, arraytype, null);
 
-                else
-                    v = ChangeType(kv.Value, t2);
+                    else if (kv.Value is IList)
+                        v = CreateGenericList((List<object>)kv.Value, t2, t1, null);
 
-                o.Add(k, v);
+                    else
+                        v = ChangeType(kv.Value, t2);
+
+                    o.Add(k, v);
+                }
+
+                return o;
             }
-
-            return o;
+            case List<object> list:
+                return CreateDictionary(list, type, gtypes, null);
+            default:
+                return null;
         }
-
-        if (parse is List<object>)
-            return CreateDictionary(parse as List<object>, type, gtypes, null);
-
-        return null;
     }
 
     private object CreateSet(object value, Type setType)
@@ -561,7 +562,7 @@ internal class Deserializer
         }
     }
 
-    private object CreateArray(List<object> data, Type pt, Type? bt, Dictionary<string, object> globalTypes)
+    private Array CreateArray(List<object> data, Type pt, Type? bt, Dictionary<string, object> globalTypes)
     {
         bt ??= typeof(object);
 
@@ -571,17 +572,21 @@ internal class Deserializer
         for (int i = 0; i < data.Count; i++)
         {
             object? ob = data[i];
-            if (ob == null)
+            
+            switch (ob)
             {
-                continue;
+                case null:
+                    continue;
+                case IDictionary:
+                    col.SetValue(ParseDictionary((Dictionary<string, object>)ob, globalTypes, bt, null), i);
+                    break;
+                case ICollection:
+                    col.SetValue(CreateArray((List<object>)ob, bt, arraytype, globalTypes), i);
+                    break;
+                default:
+                    col.SetValue(ChangeType(ob, bt), i);
+                    break;
             }
-
-            if (ob is IDictionary)
-                col.SetValue(ParseDictionary((Dictionary<string, object>)ob, globalTypes, bt, null), i);
-            else if (ob is ICollection)
-                col.SetValue(CreateArray((List<object>)ob, bt, arraytype, globalTypes), i);
-            else
-                col.SetValue(ChangeType(ob, bt), i);
         }
 
         return col;
@@ -857,9 +862,9 @@ internal class Deserializer
         // read dataset schema here
         object? schema = reader["$schema"];
 
-        if (schema is string)
+        if (schema is string s)
         {
-            TextReader tr = new StringReader((string)schema);
+            TextReader tr = new StringReader(s);
             dt.ReadXmlSchema(tr);
         }
         else
@@ -877,7 +882,7 @@ internal class Deserializer
 
         foreach (KeyValuePair<string, object> pair in reader)
         {
-            if (pair.Key == "$type" || pair.Key == "$schema")
+            if (pair.Key is "$type" or "$schema")
                 continue;
 
             List<object>? rows = (List<object>)pair.Value;

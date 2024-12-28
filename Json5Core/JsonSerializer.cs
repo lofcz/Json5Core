@@ -102,15 +102,14 @@ namespace Json5Core
                 }
                 case float f:
                 {
-                    float d = f;
-                    if (float.IsNaN(d))
+                    if (float.IsNaN(f))
                         _output.Append("NaN");
-                    else if (float.IsInfinity(d))
-                        _output.Append(d > 0 ? "Infinity" : "-Infinity");
-                    else if (d == 0)
-                        _output.Append((BitConverter.GetBytes(d)[BitConverter.IsLittleEndian ? 3 : 0] & 128) == 0 ? "0" : "-0");
+                    else if (float.IsInfinity(f))
+                        _output.Append(f > 0 ? "Infinity" : "-Infinity");
+                    else if (f == 0)
+                        _output.Append((BitConverter.GetBytes(f)[BitConverter.IsLittleEndian ? 3 : 0] & 128) == 0 ? "0" : "-0");
                     else
-                        _output.Append(d.ToString("R", NumberFormatInfo.InvariantInfo));
+                        _output.Append(f.ToString("R", NumberFormatInfo.InvariantInfo));
                     break;
                 }
                 case DateTime time:

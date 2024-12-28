@@ -54,7 +54,7 @@ namespace Json5Core
                     break;
                 case List<object> objects:
                 {
-                    List<object> list = new List<object>();
+                    List<object> list = [];
                     foreach (object item in objects)
                     {
                         list.Add(item is IDictionary<string, object> dictionary ? new DynamicJson(dictionary) : item);

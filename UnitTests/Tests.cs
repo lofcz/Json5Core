@@ -36,7 +36,7 @@ public class tests
     {
         public colclass()
         {
-            items = new List<baseclass>();
+            items = [];
             date = DateTime.Now;
             multilineString = @"
             AJKLjaskljLA
@@ -49,7 +49,7 @@ public class tests
             booleanValue = true;
             ordinaryDouble = 0.001;
             gender = Gender.Female;
-            intarray = new int[5] { 1, 2, 3, 4, 5 };
+            intarray = [1, 2, 3, 4, 5];
         }
         public bool booleanValue { get; set; }
         public DateTime date { get; set; }
@@ -268,7 +268,7 @@ public class tests
     [Test]
     public static void objectarray()
     {
-        object[] o = new object[] { 1, "sdaffs", DateTime.Now };
+        object[] o = [1, "sdaffs", DateTime.Now];
         string s = Json5.ToJson(o);
         object p = Json5.ToObject(s);
     }
@@ -328,8 +328,8 @@ public class tests
     [Test]
     public static void StringListTest()
     {
-        List<string> ls = new List<string>();
-        ls.AddRange(new string[] { "a", "b", "c", "d" });
+        List<string> ls = [];
+        ls.AddRange(["a", "b", "c", "d"]);
 
         string s = Json5.ToJson(ls);
         Console.WriteLine(s);
@@ -341,8 +341,8 @@ public class tests
     [Test]
     public static void IntListTest()
     {
-        List<int> ls = new List<int>();
-        ls.AddRange(new int[] { 1, 2, 3, 4, 5, 10 });
+        List<int> ls = [];
+        ls.AddRange([1, 2, 3, 4, 5, 10]);
 
         string s = Json5.ToJson(ls);
         Console.WriteLine(s);
@@ -355,8 +355,8 @@ public class tests
     [Test]
     public static void List_int()
     {
-        List<int> ls = new List<int>();
-        ls.AddRange(new int[] { 1, 2, 3, 4, 5, 10 });
+        List<int> ls = [];
+        ls.AddRange([1, 2, 3, 4, 5, 10]);
 
         string s = Json5.ToJson(ls);
         Console.WriteLine(s);
@@ -457,9 +457,11 @@ public class tests
     [Test]
     public static void List_RetClass()
     {
-        List<Retclass> r = new List<Retclass>();
-        r.Add(new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-        r.Add(new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now });
+        List<Retclass> r =
+        [
+            new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now },
+            new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now }
+        ];
         string s = Json5.ToJson(r);
         Console.WriteLine(Json5.Beautify(s));
         List<Retclass> o = Json5.ToObject<List<Retclass>>(s);
@@ -469,9 +471,11 @@ public class tests
     [Test]
     public static void List_RetClass_noextensions()
     {
-        List<Retclass> r = new List<Retclass>();
-        r.Add(new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-        r.Add(new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now });
+        List<Retclass> r =
+        [
+            new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now },
+            new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now }
+        ];
         string s = Json5.ToJson(r, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         List<Retclass> o = Json5.ToObject<List<Retclass>>(s);
@@ -521,7 +525,7 @@ public class tests
         ne.Age = 10;
         ne.dic = new Dictionary<string, class1>();
         ne.dic.Add("hello", new class1("asda", "asdas", Guid.NewGuid()));
-        ne.objs = new baseclass[] { new class1("a", "1", Guid.NewGuid()), new class2("b", "2", "desc") };
+        ne.objs = [new class1("a", "1", Guid.NewGuid()), new class2("b", "2", "desc")];
 
         string str = Json5.ToJson(ne, new Json5Parameters { UseExtensions = false, UsingGlobalTypes = false });
         string strr = Json5.Beautify(str);
@@ -595,9 +599,11 @@ public class tests
     [Test]
     public static void List_NestedRetClass()
     {
-        List<RetNestedclass> r = new List<RetNestedclass>();
-        r.Add(new RetNestedclass { Nested = new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now } });
-        r.Add(new RetNestedclass { Nested = new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now } });
+        List<RetNestedclass> r =
+        [
+            new RetNestedclass { Nested = new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now } },
+            new RetNestedclass { Nested = new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now } }
+        ];
         string s = Json5.ToJson(r);
         Console.WriteLine(Json5.Beautify(s));
         List<RetNestedclass> o = Json5.ToObject<List<RetNestedclass>>(s);
@@ -821,8 +827,8 @@ public class tests
     public static void ArrayTest()
     {
         arrayclass a = new arrayclass();
-        a.ints = new int[] { 3, 1, 4 };
-        a.strs = new string[] { "a", "b", "c" };
+        a.ints = [3, 1, 4];
+        a.strs = ["a", "b", "c"];
         string s = Json5.ToJson(a);
         object o = Json5.ToObject(s);
     }
@@ -1001,8 +1007,8 @@ public class tests
     {
         diclist dd = new diclist();
         dd.d = new Dictionary<string, List<string>>();
-        dd.d.Add("a", new List<string> { "1", "2", "3" });
-        dd.d.Add("b", new List<string> { "4", "5", "7" });
+        dd.d.Add("a", ["1", "2", "3"]);
+        dd.d.Add("b", ["4", "5", "7"]);
         string s = Json5.ToJson(dd, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(s);
         diclist o = Json5.ToObject<diclist>(s);
@@ -1161,11 +1167,11 @@ public class tests
     [Test]
     public static void HashsetTest()
     {
-        HashSet<string> h = new HashSet<string>
-        {
+        HashSet<string> h =
+        [
             "string1",
             "string2"
-        };
+        ];
 
         string s = Json5.ToJsonPretty(h);
         HashSet<string> o = Json5.ToObject<HashSet<string>>(s);
@@ -1177,19 +1183,21 @@ public class tests
     [Test]
     public static void HashsetNestedTest()
     {
-        HashSet<HashSet<string>> h = new HashSet<HashSet<string>>
-        {
+        HashSet<HashSet<string>> h =
+        [
             new HashSet<string>
             {
                 "item1",
                 "item2"
             },
+
             new HashSet<string>
             {
                 "item3",
                 "item4"
-            },
-        };
+            }
+
+        ];
 
         string s = Json5.ToJsonPretty(h);
         HashSet<HashSet<string>> o = Json5.ToObject<HashSet<HashSet<string>>>(s);
@@ -1204,11 +1212,10 @@ public class tests
         Dictionary<string, HashSet<string>> dict = new Dictionary<string, HashSet<string>>
         {
             {
-                "testKey", new HashSet<string>
-                {
+                "testKey", [
                     "string1",
                     "string2"
-                }
+                ]
             }
         };
 
@@ -1261,7 +1268,7 @@ public class tests
     {
         OneConcreteClass intField = new OneConcreteClass(1);
         OneOtherConcreteClass stringField = new OneOtherConcreteClass("lol");
-        List<abstractClass> list = new List<abstractClass>() { intField, stringField };
+        List<abstractClass> list = [intField, stringField];
 
         string json = Json5.ToJsonPretty(list, new Json5Parameters() { UseExtensions = true });
         Console.WriteLine(json);
@@ -1418,7 +1425,7 @@ public class tests
         nondefaultctor obj = Json5.ToObject<nondefaultctor>(s, new Json5Parameters { ParametricConstructorOverride = true, UsingGlobalTypes = true, UseExtensions = true });
         Assert.That(obj.age, Is.EqualTo(10));
         Console.WriteLine("list of objects");
-        List<nondefaultctor> l = new List<nondefaultctor> { o, o, o };
+        List<nondefaultctor> l = [o, o, o];
         s = Json5.ToJson(l);
         Console.WriteLine(s);
         List<nondefaultctor> obj2 = Json5.ToObject<List<nondefaultctor>>(s, new Json5Parameters { ParametricConstructorOverride = true, UsingGlobalTypes = true, UseExtensions = true });
@@ -1560,7 +1567,7 @@ public class tests
     [Test]
     public static void ListOfList()
     {
-        List<List<object>> o = new List<List<object>> { new List<object> { 1, 2, 3 }, new List<object> { "aa", 3, "bb" } };
+        List<List<object>> o = [new List<object> { 1, 2, 3 }, new List<object> { "aa", 3, "bb" }];
         string s = Json5.ToJson(o);
         Console.WriteLine(s);
         object i = Json5.ToObject(s);
@@ -1570,7 +1577,7 @@ public class tests
         i = Json5.ToObject(s);
         Assert.That((i as lol).r[0].Count, Is.EqualTo(3));
 
-        List<object[]> oo = new List<object[]> { new object[] { 1, 2, 3 }, new object[] { "a", 4, "b" } };
+        List<object[]> oo = [new object[] { 1, 2, 3 }, new object[] { "a", 4, "b" }];
         s = Json5.ToJson(oo);
         Console.WriteLine(s);
         object ii = Json5.ToObject(s);
@@ -1645,7 +1652,7 @@ public class tests
     public class Root
     {
         public Y TheY;
-        public List<A> ListOfAs = new List<A>();
+        public List<A> ListOfAs = [];
         public string UnicodeText;
         public Root NextRoot;
         public int MagicInt { get; set; }
@@ -1661,7 +1668,7 @@ public class tests
     public static void complexobject()
     {
         Root r = new Root();
-        r.TheY = new Y { BinaryData = new byte[] { 0xDE, 0xAD, 0xBE, 0xEF } };
+        r.TheY = new Y { BinaryData = [0xDE, 0xAD, 0xBE, 0xEF] };
         r.ListOfAs.Add(new A { DataA = 10 });
         r.ListOfAs.Add(new B { DataA = 20, DataB = "Hello" });
         r.ListOfAs.Add(new C { DataA = 30, DataC = DateTime.Today });
@@ -1754,7 +1761,7 @@ public class tests
     public class container
     {
         public string name = "aa";
-        public List<inline> items = new List<inline>();
+        public List<inline> items = [];
     }
     public class inline
     {
@@ -1863,28 +1870,28 @@ public class tests
     public static void ArrayTest2()
     {
         arrayclass2 a = new arrayclass2();
-        a.ints = new int[] { 3, 1, 4 };
-        a.strs = new string[] { "a", "b", "c" };
-        a.int2d = new int[][] { new int[] { 1, 2, 3 }, new int[] { 2, 3, 4 } };
+        a.ints = [3, 1, 4];
+        a.strs = ["a", "b", "c"];
+        a.int2d = new int[][] { [1, 2, 3], [2, 3, 4] };
         a.int3d = new int[][][] {        new int[][] {
-            new int[] { 0, 0, 1 },
-            new int[] { 0, 1, 0 }
-        },
+                [0, 0, 1],
+                [0, 1, 0]
+            },
         null,
         new int[][] {
-            new int[] { 0, 0, 2 },
-            new int[] { 0, 2, 0 },
+            [0, 0, 2],
+            [0, 2, 0],
             null
         }
     };
         a.class2d = new baseclass[][]{
-        new baseclass[] {
-            new baseclass () { Name = "a", Code = "A" },
+            [
+                new baseclass () { Name = "a", Code = "A" },
             new baseclass () { Name = "b", Code = "B" }
-        },
-        new baseclass[] {
-            new baseclass () { Name = "c" }
-        },
+            ],
+            [
+                new baseclass () { Name = "c" }
+            ],
         null
     };
         string s = Json5.ToJson(a);
@@ -2090,7 +2097,7 @@ public class tests
                     uint y5 = uint.Parse(x_[(5 * 8)..(6 * 8)], System.Globalization.NumberStyles.HexNumber);
                     uint y6 = uint.Parse(x_[(6 * 8)..(7 * 8)], System.Globalization.NumberStyles.HexNumber);
                     uint y7 = uint.Parse(x_[(7 * 8)..(8 * 8)], System.Globalization.NumberStyles.HexNumber);
-                    uint[] ys = { y0, y1, y2, y3, y4, y5, y6, y7 };
+                    uint[] ys = [y0, y1, y2, y3, y4, y5, y6, y7];
                     fixed (uint* y = ys) return *(HashCode*)&y;
                 }
             });
@@ -2112,8 +2119,10 @@ public class tests
     public static void anonymoustype()
     {
         Json5Parameters json5Parameters = new Json5Parameters { EnableAnonymousTypes = true, UseExtensions = true };
-        List<DateTimeOffset> data = new List<DateTimeOffset>();
-        data.Add(new DateTimeOffset(DateTime.Now));
+        List<DateTimeOffset> data =
+        [
+            new DateTimeOffset(DateTime.Now)
+        ];
 
         var anonTypeWithDateTimeOffset = data.Select(entry => new { DateTimeOffset = entry }).ToList();
         string json = Json5.ToJson(anonTypeWithDateTimeOffset.First(), json5Parameters); // this will throw
@@ -2206,7 +2215,7 @@ public class tests
         string s = Json5.ToJson(new Dictionary<string, byte[]>
                 {
                     { "Test", new byte[10] },
-                    { "Test 2", new byte[0] }
+                    { "Test 2", [] }
                 });
 
         Dictionary<string, byte[]> d = Json5.ToObject<Dictionary<string, byte[]>>(s);
@@ -2816,7 +2825,7 @@ public class tests
     public static void DictListTest()
     {
         Dictionary<string, List<AC>> dictList = new Dictionary<string, List<AC>>();
-        dictList.Add("P", new List<AC>());
+        dictList.Add("P", []);
         dictList["P"].Add(new AC() { Lo = 1.5m, Ratio = 2.5m });
         dictList["P"].Add(new AC() { Lo = 2.5m, Ratio = 3.5m });
         string jsonstr = Json5.ToJson(dictList, new Json5Parameters { UseExtensions = false });
@@ -3161,7 +3170,7 @@ public class tests
     [Test]
     public static void ReadOnlyProperty() // rbeurskens 
     {
-        readonlyProps dto = new readonlyProps(new List<string> { "test", "test2" });
+        readonlyProps dto = new readonlyProps(["test", "test2"]);
 
         Json5.Parameters.ShowReadOnlyProperties = true;
         string s = Json5.ToJson(dto);
@@ -3230,11 +3239,12 @@ public class tests
         {
             Id = 1,
             Stuff = "test",
-            Items = new ObservableCollection<Item>()
+            Items =
+            [
+                new Item { Id = 1, Data = "Item 1" },
+                new Item { Id = 2, Data = "Item 2" }
+            ]
         };
-
-        testObject.Items.Add(new Item { Id = 1, Data = "Item 1" });
-        testObject.Items.Add(new Item { Id = 2, Data = "Item 2" });
 
         string jsonData = Json5.ToJsonPretty(testObject);
         Console.WriteLine(jsonData);
@@ -3257,8 +3267,8 @@ public class tests
     public static void diclistdouble()
     {
         Dictionary<int, List<double>> d = new Dictionary<int, List<double>>();
-        d.Add(1, new List<double> { 1.1, 2.2, 3.3 });
-        d.Add(2, new List<double> { 4.4, 5.5, 6.6 });
+        d.Add(1, [1.1, 2.2, 3.3]);
+        d.Add(2, [4.4, 5.5, 6.6]);
         string s = Json5.ToJson(d, new Json5Parameters { UseExtensions = false });
 
         Dictionary<int, List<double>> o = Json5.ToObject<Dictionary<int, List<double>>>(s, new Json5Parameters { AutoConvertStringToNumbers = true, UseExtensions = true });
@@ -3363,12 +3373,12 @@ public class tests
     public static void refchecking1()
     {
         Point p = new Point(0, 1);
-        Circle[] circles = new Circle[]
-        {
+        Circle[] circles =
+        [
             new Circle() { Center = new Point(0, 0), Radius = 1 },
             new Circle() { Center = p, Radius = 2 },
             new Circle() { Center = p, Radius = 3 }
-        };
+        ];
         Json5Parameters jp = new Json5Parameters { OverrideObjectHashCodeChecking = true, UseExtensions = true };
         string json = Json5.ToJsonPretty(circles);//, jp);
         Console.WriteLine(json);
@@ -3379,12 +3389,12 @@ public class tests
     [Test]
     public static void refchecking2()
     {
-        Circle[] circles = new Circle[]
-        {
+        Circle[] circles =
+        [
             new Circle() { Center = new Point(0, 0), Radius = 1 },
             new Circle() { Center = new Point(0, 1), Radius = 2 },
             new Circle() { Center = new Point(0, 1), Radius = 3 }
-        };
+        ];
         Json5Parameters jp = new Json5Parameters { OverrideObjectHashCodeChecking = true, InlineCircularReferences = true, UseExtensions = true };
 
         string json = Json5.ToJsonPretty(circles, jp);
@@ -3840,7 +3850,7 @@ there
             Assert.That(Json5.ToJson(Json5.Parse("'\\b\\f\\n\\r\\t\\v\\0\\x0f\\u01fF\\\n\\\r\n\\\r\\\u2028\\\u2029\\a\\'\\\"'")), Is.EqualTo("\"\\b\\f\\n\\r\\t\\v\\0\\u000F\u01ff\\a'\\\"\""));
             Console.WriteLine("parses escaped characters (pt. 2)");
 
-            List<string> warnings = new List<string>();
+            List<string> warnings = [];
             Assert.That(Json5.ToJson(Json5.Parse("'\u2028\u2029'", warnings)), Is.EqualTo("\"\\u2028\\u2029\""));
             Assert.That(warnings, Is.EqualTo(new[] { "Warning: invalid ECMAScript at index 1 with character \\u2028 in string.", "Warning: invalid ECMAScript at index 2 with character \\u2029 in string." }));
             Console.WriteLine("parses line and paragraph separators with a warning");
