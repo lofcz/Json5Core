@@ -252,7 +252,7 @@ namespace Json5Core
         private void WriteCustom(object obj)
         {
             Reflection.Instance._customSerializer.TryGetValue(obj.GetType(), out Reflection.Serialize s);
-            WriteStringFast(s(obj));
+            WriteStringFast(s(obj)); // _output.Append(s(obj));
         }
 
         private void WriteEnum(Enum e)
@@ -443,6 +443,7 @@ namespace Json5Core
                     return;
                 }
             }
+            
             if (_params.UsingGlobalTypes == false)
                 _output.Append('{');
             else

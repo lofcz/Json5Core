@@ -68,8 +68,8 @@ namespace Json5Core
         bool allownonquotedkey;
         //bool AllowJson5String = false;
         int _len;
-        Json5SafeDictionary<string, bool>? _lookup;
-        Json5SafeDictionary<Type, bool>? _seen;
+        HashSet<string> _lookup = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+        HashSet<Type> _seen = [];
         bool _parseJsonType;
         IList<string> warnings;
 
@@ -84,15 +84,15 @@ namespace Json5Core
 
         private void SetupLookup()
         {
-            _lookup = new Json5SafeDictionary<string, bool>();
-            _seen = new Json5SafeDictionary<Type, bool>();
-            _lookup.Add("$types", true);
-            _lookup.Add("$type", true);
-            _lookup.Add("$i", true);
-            _lookup.Add("$map", true);
-            _lookup.Add("$schema", true);
-            _lookup.Add("k", true);
-            _lookup.Add("v", true);
+            _lookup.Clear();
+            _seen.Clear();
+            _lookup.Add("$types");
+            _lookup.Add("$type");
+            _lookup.Add("$i");
+            _lookup.Add("$map");
+            _lookup.Add("$schema");
+            _lookup.Add("k");
+            _lookup.Add("v");
         }
 
         public unsafe object Decode(Type? type)
@@ -113,7 +113,7 @@ namespace Json5Core
                         BuildLookup(type);
 
                         // reset if no properties found
-                        if (_parseJsonType == false || _lookup.Count() == 7)
+                        if (_parseJsonType == false || _lookup.Count == 7)
                             _lookup = null;
                     }
                 }
@@ -127,30 +127,25 @@ namespace Json5Core
                 return retV;
             }
         }
+        
+        private readonly string typesStr = "$types";
 
         private unsafe bool CheckForTypeInJson(char* p)
         {
-            int idx = 0;
-            int len = _len > 1000 ? 1000 : _len;
-            while (idx < len)
+            ReadOnlySpan<char> target = typesStr;
+            
+            int len = Math.Min(_len, 1000);
+            for (int i = 0; i <= len - target.Length; i++)
             {
-                if (p[idx + 0] == '$' &&
-                    p[idx + 1] == 't' &&
-                    p[idx + 2] == 'y' &&
-                    p[idx + 3] == 'p' &&
-                    p[idx + 4] == 'e' &&
-                    p[idx + 5] == 's'
-                    )
+                if (new ReadOnlySpan<char>(p + i, target.Length).SequenceEqual(target))
                     return true;
-                idx++;
             }
-
             return false;
         }
 
         private void BuildGenericTypeLookup(Type t)
         {
-            if (_seen.TryGetValue(t, out bool _))
+            if (_seen.Contains(t))
                 return;
 
             foreach (Type? e in t.GetGenericArguments())
@@ -169,7 +164,7 @@ namespace Json5Core
 
         private void BuildArrayTypeLookup(Type t)
         {
-            if (_seen.TryGetValue(t, out bool _))
+            if (_seen.Contains(t))
                 return;
 
             bool isstruct = t.IsValueType() && !t.IsEnum();
@@ -188,14 +183,11 @@ namespace Json5Core
 
             if (objtype == typeof(NameValueCollection) || objtype == typeof(StringDictionary))
                 return;
-
-            //if (objtype == typeof(DataSet) || objtype == typeof(DataTable)) 
-            //    return;
-
+            
             if (typeof(IDictionary).IsAssignableFrom(objtype))
                 return;
 
-            if (_seen.TryGetValue(objtype, out bool _))
+            if (_seen.Contains(objtype))
                 return;
 
             if (objtype.IsGenericType())
@@ -203,18 +195,17 @@ namespace Json5Core
 
             else if (objtype.IsArray)
             {
-                Type t = objtype;
                 BuildArrayTypeLookup(objtype);
             }
             else
             {
-                _seen.Add(objtype, true);
+                _seen.Add(objtype);
 
                 foreach (KeyValuePair<string, myPropInfo> m in Reflection.Instance.Getproperties(objtype, objtype.FullName, true))
                 {
                     Type t = m.Value.pt;
 
-                    _lookup.Add(m.Key.ToLowerInvariant(), true);
+                    _lookup.Add(m.Key);
 
                     if (t.IsArray)
                         BuildArrayTypeLookup(t);
@@ -229,7 +220,8 @@ namespace Json5Core
                         }
                         BuildGenericTypeLookup(t);
                     }
-                    if (t.FullName.IndexOf("System.") == -1)
+                    
+                    if (!t.FullName!.StartsWith("System.", StringComparison.Ordinal))
                         BuildLookup(t);
                 }
             }
@@ -237,10 +229,7 @@ namespace Json5Core
 
         private bool InLookup(string name)
         {
-            if (_lookup == null)
-                return true;
-
-            return _lookup.TryGetValue(name.ToLowerInvariant(), out bool v);
+            return _lookup is null || _lookup.Contains(name);
         }
 
         bool _parseType;
@@ -605,8 +594,8 @@ namespace Json5Core
                 char c = p[index + run++];
                 if (c == '\\')
                     break;
-                if (c == '\n' || c == '\r') throw new Exception("Illegal newline character in string at index " + index);
-                if (c == '\u2028' || c == '\u2029') break;
+                if (c is '\n' or '\r') throw new Exception("Illegal newline character in string at index " + index);
+                if (c is '\u2028' or '\u2029') break;
                 if (c == quote)//'\"')
                 {
                     string? str = UnsafeSubstring(p, index, run - 1);
@@ -624,9 +613,18 @@ namespace Json5Core
 
                 if (c != '\\')
                 {
-                    if (c == '\n' || c == '\r') throw new Exception("Illegal newline character in string at index " + (index - 1));
-                    if (c == '\u2028') warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2028 in string.");
-                    else if (c == '\u2029') warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2029 in string.");
+                    switch (c)
+                    {
+                        case '\n' or '\r':
+                            throw new Exception("Illegal newline character in string at index " + (index - 1));
+                        case '\u2028':
+                            warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2028 in string.");
+                            break;
+                        case '\u2029':
+                            warnings?.Add($"Warning: invalid ECMAScript at index { index - 1 } with character \\u2029 in string.");
+                            break;
+                    }
+
                     s.Append(c);
                 }
                 else
@@ -800,7 +798,7 @@ namespace Json5Core
                 char c = p[index];
                 char c1 = p[index + 1];
 
-                if ((!signed && (c == 'x' || c == 'X')) || (signed && (c1 == 'x' || c1 == 'X')))
+                if ((!signed && c is 'x' or 'X') || (signed && c1 is 'x' or 'X'))
                 {
                     index++;
                     if (signed) index++;
@@ -1054,7 +1052,7 @@ namespace Json5Core
                     do
                     {
                         c = p[index];
-                        if (c == '\r' || c == '\n' || c == '\u2028' || c == '\u2029') break; // read till end of line
+                        if (c is '\r' or '\n' or '\u2028' or '\u2029') break; // read till end of line
                     }
                     while (++index < _len);
                 }

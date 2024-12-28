@@ -295,7 +295,7 @@ internal class Deserializer
 
 
         Type? arraytype = t2.GetElementType();
-        
+
         switch (parse)
         {
             case Dictionary<string, object> objects:
@@ -338,16 +338,7 @@ internal class Deserializer
     private object CreateSet(object value, Type setType)
     {
         Type elementType = setType.GetGenericArguments()[0];
-        Type concreteSetType;
-
-        if (setType.GetGenericTypeDefinition() == typeof(HashSet<>))
-        {
-            concreteSetType = setType;
-        }
-        else
-        {
-            concreteSetType = typeof(HashSet<>).MakeGenericType(elementType);
-        }
+        Type concreteSetType = setType.GetGenericTypeDefinition() == typeof(HashSet<>) ? setType : typeof(HashSet<>).MakeGenericType(elementType);
 
         object set = Reflection.Instance.FastCreateInstance(concreteSetType);
         MethodInfo? addMethod = concreteSetType.GetMethod("Add");
@@ -503,6 +494,7 @@ internal class Deserializer
                             {
                                 oset = CreateGenericSet(localList, pi.pt, pi.bt, globaltypes);
                             }
+
                             break;
                         case myPropInfoType.Hashtable: // same case as Dictionary
                         case myPropInfoType.Dictionary:
@@ -572,7 +564,7 @@ internal class Deserializer
         for (int i = 0; i < data.Count; i++)
         {
             object? ob = data[i];
-            
+
             switch (ob)
             {
                 case null:
@@ -591,15 +583,15 @@ internal class Deserializer
 
         return col;
     }
-    
+
     private object CreateGenericSet(List<object> data, Type pt, Type bt, Dictionary<string, object> globalTypes)
     {
         if (pt != typeof(object))
         {
             Type actualType = pt is { IsInterface: true, IsGenericType: true } && pt.GetGenericTypeDefinition() == typeof(ISet<>) ? typeof(HashSet<>).MakeGenericType(pt.GetGenericArguments()) : pt;
-            
+
             object col = Reflection.Instance.FastCreateInstance(actualType);
-            
+
             MethodInfo? addMethod = pt.GetMethod("Add");
             Type? it = Reflection.Instance.GetGenericArguments(pt)[0];
 
@@ -627,7 +619,7 @@ internal class Deserializer
 
             return col;
         }
-        
+
         return new HashSet<object>(data);
     }
 

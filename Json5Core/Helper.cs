@@ -240,7 +240,7 @@ namespace Json5Core
             return CreateDateTimeOffset(year, month, day, hour, min, sec, ms, usTicks, new TimeSpan(th, tm, 0));
         }
 
-        public static DateTime CreateDateTime(string value, bool UseUTCDateTime)
+        public static DateTime CreateDateTime(string value, bool useUTCDateTime)
         {
             if (value.Length < 19)
                 return DateTime.MinValue;
@@ -262,15 +262,15 @@ namespace Json5Core
             if (value[^1] == 'Z')
                 utc = true;
 
-            switch (UseUTCDateTime)
+            if (value.Length > 21 && value[19] == '.')
+                ms = CreateInteger(value, 20, (value.Length - (utc ? 21 : 20)));
+            
+            return useUTCDateTime switch
             {
-                case false when utc == false:
-                    return new DateTime(year, month, day, hour, min, sec, ms);
-                case true when utc:
-                    return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc);
-                default:
-                    return new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc).ToLocalTime();
-            }
+                false when utc == false => new DateTime(year, month, day, hour, min, sec, ms),
+                true when utc => new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc),
+                _ => new DateTime(year, month, day, hour, min, sec, ms, DateTimeKind.Utc).ToLocalTime()
+            };
         }
     }
 }

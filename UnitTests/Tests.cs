@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Dynamic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using NUnit.Framework.Legacy;
 
 //namespace UnitTests
@@ -2033,32 +2034,54 @@ public class tests
         object o = Json5.Parse(s);
         Assert.That((o as IDictionary).Count, Is.EqualTo(2));
     }
-
-#if !CORE_TEST || NETFRAMEWORK || !NETCOREAPP3_0_OR_GREATER
-    public class ctype
-    {
-        public System.Net.IPAddress ip;
-    }
-    [Test]
-    public static void CustomTypes()
-    {
-        var ip = new ctype();
-        ip.ip = System.Net.IPAddress.Loopback;
-
-        JSON.RegisterCustomType(typeof(System.Net.IPAddress),
-            (x) => { return x.ToString(); },
-            (x) => { return System.Net.IPAddress.Parse(x); });
-
-        var s = JSON.ToJSON(ip);
-
-        var o = JSON.ToObject<ctype>(s);
-        ClassicAssert.AreEqual(ip.ip, o.ip);
-    }
-#else
+    
     public class ctype
     {
         public HashCode hashcode;
     }
+    
+    public struct NumericValue
+    {
+        public double value;
+            
+        public NumericValue(double initialValue)
+        {
+            value = initialValue;
+        }
+            
+        public override string ToString()
+        {
+            return value.ToString("G17", CultureInfo.InvariantCulture);
+        }
+    }
+    
+    [Test]
+    public static void CustomTypesNumeric()
+    {
+        NumericValue test = new NumericValue
+        {
+            value = 20
+        };
+
+        Json5.RegisterCustomType(typeof(NumericValue),
+        (x) =>
+        {
+            NumericValue num = (NumericValue)x;
+            return num.ToString();
+        },
+        (x) =>
+        {
+            string strValue = x;
+            double parsedValue = double.Parse(strValue, CultureInfo.InvariantCulture);
+            return new NumericValue(parsedValue);
+        });
+        
+        string s = Json5.ToJson(test);
+        NumericValue o = Json5.ToObject<NumericValue>(s);
+        
+        Assert.That(o.value, Is.EqualTo(20));
+    }
+    
     [Test]
     public static void CustomTypes()
     {
@@ -2107,7 +2130,6 @@ public class tests
         ctype o = Json5.ToObject<ctype>(s);
         Assert.That(o.hashcode.ToHashCode(), Is.EqualTo(hashcode.hashcode.ToHashCode()));
     }
-#endif
 
     [Test]
     public static void stringint()

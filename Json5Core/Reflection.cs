@@ -51,9 +51,7 @@ namespace Json5Core
         public Reflection.GenericGetter getter;
         public Type[] GenericTypes;
         public string Name;
-        //#if NET4
         public string memberName;
-        //#endif
         public myPropInfoType Type;
         public bool CanWrite;
 
@@ -96,7 +94,7 @@ namespace Json5Core
         private Json5SafeDictionary<string, Dictionary<string, myPropInfo>> _propertycache = new Json5SafeDictionary<string, Dictionary<string, myPropInfo>>(10);
         private Json5SafeDictionary<Type, Type[]> _genericTypes = new Json5SafeDictionary<Type, Type[]>(10);
         private Json5SafeDictionary<Type, Type> _genericTypeDef = new Json5SafeDictionary<Type, Type>(10);
-        private static Json5SafeDictionary<short, OpCode> _opCodes;
+        private static Json5SafeDictionary<short, OpCode>? _opCodes;
         private static List<string> _badlistTypes =
         [
             "system.configuration.install.assemblyinstaller",
@@ -138,32 +136,16 @@ namespace Json5Core
             return utf8.GetString(bytes, offset, len);
         }
 
-        public unsafe static byte[] UnicodeGetBytes(string str)
-        {
-            int len = str.Length * 2;
-            byte[] b = new byte[len];
-            fixed (void* ptr = str)
-            {
-                System.Runtime.InteropServices.Marshal.Copy(new IntPtr(ptr), b, 0, len);
-            }
-            return b;
-        }
-
         public static string UnicodeGetString(byte[] b)
         {
             return UnicodeGetString(b, 0, b.Length);
         }
 
-        public unsafe static string UnicodeGetString(byte[] bytes, int offset, int buflen)
+        public static string UnicodeGetString(byte[] bytes, int offset, int buflen)
         {
-            string str = "";
-            fixed (byte* bptr = bytes)
-            {
-                char* cptr = (char*)(bptr + offset);
-                str = new string(cptr, 0, buflen / 2);
-            }
-            return str;
+            return Encoding.Unicode.GetString(bytes, offset, buflen);
         }
+
         #endregion
 
         #region json custom types
@@ -190,10 +172,7 @@ namespace Json5Core
 
         internal bool IsTypeRegistered(Type t)
         {
-            if (_customSerializer.Count() == 0)
-                return false;
-            Serialize s;
-            return _customSerializer.TryGetValue(t, out s);
+            return _customSerializer.Count != 0 && _customSerializer.TryGetValue(t, out _);
         }
         #endregion
 
@@ -215,7 +194,7 @@ namespace Json5Core
             return tt;
         }
 
-        public Dictionary<string, myPropInfo> Getproperties(Type type, string typename, bool ShowReadOnlyProperties)
+        public Dictionary<string, myPropInfo> Getproperties(Type type, string typename, bool showReadOnlyProperties)
         {
             if (_propertycache.TryGetValue(typename, out Dictionary<string, myPropInfo> sd))
             {
@@ -231,28 +210,31 @@ namespace Json5Core
                     continue;
 
                 myPropInfo d = CreateMyProp(p.PropertyType, p.Name);
-                d.setter = CreateSetMethod(type, p, ShowReadOnlyProperties);
+                d.setter = CreateSetMethod(type, p, showReadOnlyProperties);
                 if (d.setter != null)
                     d.CanWrite = true;
                 d.getter = CreateGetMethod(type, p);
-                object[]? att = p.GetCustomAttributes(true);
+                object[] att = p.GetCustomAttributes(true);
                 foreach (object? at in att)
                 {
-                    if (at is System.Runtime.Serialization.DataMemberAttribute attribute)
+                    switch (at)
                     {
-                        if (attribute.Name != "")
-                            d.memberName = attribute.Name;
-                    }
-                    if (at is DataMemberAttribute dm)
-                    {
-                        if (dm.Name != "")
-                            d.memberName = dm.Name;
+                        case System.Runtime.Serialization.DataMemberAttribute attribute:
+                        {
+                            if (attribute.Name != "")
+                                d.memberName = attribute.Name;
+                            break;
+                        }
+                        case DataMemberAttribute dm:
+                        {
+                            if (dm.Name != "")
+                                d.memberName = dm.Name;
+                            break;
+                        }
                     }
                 }
-                if (d.memberName != null)
-                    sd.Add(d.memberName, d);
-                else
-                    sd.Add(p.Name.ToLowerInvariant(), d);
+
+                sd.Add(d.memberName ?? p.Name.ToLowerInvariant(), d);
             }
             FieldInfo[] fi = type.GetFields(bf);
             foreach (FieldInfo f in fi)
@@ -404,9 +386,8 @@ namespace Json5Core
                     count = capacity;
                 if (_conlistcache.TryGetValue(objtype, out CreateList c))
                 {
-                    if (c != null) // kludge : non capacity lists
-                        return c(count);
-                    return FastCreateInstance(objtype);
+                    return c != null ? // kludge : non capacity lists
+                        c(count) : FastCreateInstance(objtype);
                 }
 
                 ConstructorInfo? cinfo = objtype.GetConstructor([typeof(int)]);
@@ -427,8 +408,7 @@ namespace Json5Core
             }
             catch (Exception exc)
             {
-                throw new Exception(string.Format("Failed to fast create instance for type '{0}' from assembly '{1}'",
-                    objtype.FullName, objtype.AssemblyQualifiedName), exc);
+                throw new Exception($"Failed to fast create instance for type '{objtype.FullName}' from assembly '{objtype.AssemblyQualifiedName}'", exc);
             }
         }
 
@@ -467,8 +447,7 @@ namespace Json5Core
             }
             catch (Exception exc)
             {
-                throw new Exception(string.Format("Failed to fast create instance for type '{0}' from assembly '{1}'",
-                    objtype.FullName, objtype.AssemblyQualifiedName), exc);
+                throw new Exception($"Failed to fast create instance for type '{objtype.FullName}' from assembly '{objtype.AssemblyQualifiedName}'", exc);
             }
         }
 
@@ -531,20 +510,18 @@ namespace Json5Core
                     return InternalHelpers.ModuleResolveMember(getMethod.Module, BitConverter.ToInt32(byteCode, pos), getMethod.DeclaringType?.GetGenericArguments(), null) as FieldInfo;
                 }
                 // Otherwise, set the current position to the start of the next instruction, if any (we need to know how much bytes are used by operands).
-                pos += opCode.OperandType == OperandType.InlineNone
-                            ? 0
-                            : opCode.OperandType == OperandType.ShortInlineBrTarget ||
-                              opCode.OperandType == OperandType.ShortInlineI ||
-                              opCode.OperandType == OperandType.ShortInlineVar
-                                ? 1
-                                : opCode.OperandType == OperandType.InlineVar
-                                    ? 2
-                                    : opCode.OperandType == OperandType.InlineI8 ||
-                                      opCode.OperandType == OperandType.InlineR
-                                        ? 8
-                                        : opCode.OperandType == OperandType.InlineSwitch
-                                            ? 4 * (BitConverter.ToInt32(byteCode, pos) + 1)
-                                            : 4;
+                pos += opCode.OperandType switch
+                {
+                    OperandType.InlineNone => 0,
+                    OperandType.ShortInlineBrTarget => 1,
+                    OperandType.ShortInlineI => 1,
+                    OperandType.ShortInlineVar => 1,
+                    OperandType.InlineVar => 2,
+                    OperandType.InlineI8 => 8,
+                    OperandType.InlineR => 8,
+                    OperandType.InlineSwitch => 4 * (BitConverter.ToInt32(byteCode, pos) + 1),
+                    _ => 4
+                };
             }
             return null;
             tryAlternative:;
@@ -686,7 +663,7 @@ namespace Json5Core
             return (GenericGetter)getter.CreateDelegate(typeof(GenericGetter));
         }
 
-        public Getters[] GetGetters(Type type, /*bool ShowReadOnlyProperties,*/ List<Type> IgnoreAttributes)
+        public Getters[] GetGetters(Type type, List<Type> ignoreAttributes)
         {
             if (_getterscache.TryGetValue(type, out Getters[] val))
                 return val;
@@ -701,16 +678,18 @@ namespace Json5Core
             foreach (PropertyInfo p in props)
             {
                 bool read_only = false;
+                
                 if (p.GetIndexParameters().Length > 0)
-                {// Property is an indexer
+                {
+                    // Property is an indexer
                     continue;
                 }
                 if (!p.CanWrite)// && (ShowReadOnlyProperties == false))//|| isAnonymous == false))
                     read_only = true; //continue;
-                if (IgnoreAttributes != null)
+                if (ignoreAttributes != null)
                 {
                     bool found = false;
-                    foreach (Type? ignoreAttr in IgnoreAttributes)
+                    foreach (Type? ignoreAttr in ignoreAttributes)
                     {
                         if (p.IsDefined(ignoreAttr, false))
                         {
@@ -722,23 +701,29 @@ namespace Json5Core
                         continue;
                 }
                 string mName = null;
-                object[]? att = p.GetCustomAttributes(true);
+                object[] att = p.GetCustomAttributes(true);
+                
                 foreach (object? at in att)
                 {
-                    if (at is System.Runtime.Serialization.DataMemberAttribute)
+                    switch (at)
                     {
-                        System.Runtime.Serialization.DataMemberAttribute? dm = (System.Runtime.Serialization.DataMemberAttribute)at;
-                        if (dm.Name != "")
+                        case System.Runtime.Serialization.DataMemberAttribute attribute:
                         {
-                            mName = dm.Name;
+                            if (attribute.Name != "")
+                            {
+                                mName = attribute.Name;
+                            }
+
+                            break;
                         }
-                    }
-                    if (at is DataMemberAttribute)
-                    {
-                        DataMemberAttribute? dm = (DataMemberAttribute)at;
-                        if (dm.Name != "")
+                        case DataMemberAttribute dm:
                         {
-                            mName = dm.Name;
+                            if (dm.Name != "")
+                            {
+                                mName = dm.Name;
+                            }
+
+                            break;
                         }
                     }
                 }
@@ -750,13 +735,12 @@ namespace Json5Core
             FieldInfo[] fi = type.GetFields(bf);
             foreach (FieldInfo? f in fi)
             {
-                bool read_only = false;
-                if (f.IsInitOnly) // && (ShowReadOnlyProperties == false))//|| isAnonymous == false))
-                    read_only = true;//continue;
-                if (IgnoreAttributes != null)
+                bool read_only = f.IsInitOnly;
+                
+                if (ignoreAttributes != null)
                 {
                     bool found = false;
-                    foreach (Type? ignoreAttr in IgnoreAttributes)
+                    foreach (Type? ignoreAttr in ignoreAttributes)
                     {
                         if (f.IsDefined(ignoreAttr, false))
                         {
@@ -768,23 +752,28 @@ namespace Json5Core
                         continue;
                 }
                 string mName = null;
-                object[]? att = f.GetCustomAttributes(true);
+                object[] att = f.GetCustomAttributes(true);
                 foreach (object? at in att)
                 {
-                    if (at is System.Runtime.Serialization.DataMemberAttribute)
+                    switch (at)
                     {
-                        System.Runtime.Serialization.DataMemberAttribute? dm = (System.Runtime.Serialization.DataMemberAttribute)at;
-                        if (dm.Name != "")
+                        case System.Runtime.Serialization.DataMemberAttribute attribute:
                         {
-                            mName = dm.Name;
+                            if (attribute.Name != string.Empty)
+                            {
+                                mName = attribute.Name;
+                            }
+
+                            break;
                         }
-                    }
-                    if (at is DataMemberAttribute)
-                    {
-                        DataMemberAttribute? dm = (DataMemberAttribute)at;
-                        if (dm.Name != "")
+                        case DataMemberAttribute dm:
                         {
-                            mName = dm.Name;
+                            if (dm.Name != string.Empty)
+                            {
+                                mName = dm.Name;
+                            }
+
+                            break;
                         }
                     }
                 }

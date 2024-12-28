@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -14,50 +16,31 @@ namespace Json5Core
 
     public sealed class Json5SafeDictionary<TKey, TValue>
     {
-        private readonly object _Padlock = new object();
-        private readonly Dictionary<TKey, TValue> _Dictionary;
+        private readonly ConcurrentDictionary<TKey, TValue> _dictionary;
 
         public Json5SafeDictionary(int capacity)
         {
-            _Dictionary = new Dictionary<TKey, TValue>(capacity);
+            _dictionary = new ConcurrentDictionary<TKey, TValue>(Environment.ProcessorCount, capacity, EqualityComparer<TKey>.Default);
         }
 
         public Json5SafeDictionary()
         {
-            _Dictionary = new Dictionary<TKey, TValue>();
+            _dictionary = new ConcurrentDictionary<TKey, TValue>();
         }
 
         public bool TryGetValue(TKey key, out TValue value)
-        {
-            lock (_Padlock)
-                return _Dictionary.TryGetValue(key, out value);
-        }
+            => _dictionary.TryGetValue(key, out value);
 
-        public int Count()
-        {
-            lock (_Padlock) return _Dictionary.Count;
-        }
+        public int Count => _dictionary.Count;
 
         public TValue this[TKey key]
         {
-            get
-            {
-                lock (_Padlock)
-                    return _Dictionary[key];
-            }
-            set
-            {
-                lock (_Padlock)
-                    _Dictionary[key] = value;
-            }
+            get => _dictionary[key];
+            set => _dictionary[key] = value;
         }
 
         public void Add(TKey key, TValue value)
-        {
-            lock (_Padlock)
-            {
-                _Dictionary.TryAdd(key, value);
-            }
-        }
+            => _dictionary.TryAdd(key, value);
     }
+
 }
