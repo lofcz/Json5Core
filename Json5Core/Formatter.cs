@@ -1,69 +1,66 @@
-﻿using System.Text;
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Json5Core
 {
     internal static class Formatter
     {
-        private static void AppendIndent(StringBuilder sb, int count, string indent)
+        public static string PrettyPrint(string input, int spaces)
         {
-            for (; count > 0; --count) sb.Append(indent);
-        }
-
-        public static string PrettyPrint(string input)
-        {
-            return PrettyPrint(input, new string(' ', Json5.Parameters.FormatterIndentSpaces));// "   ");
-        }
-
-        public static string PrettyPrint(string input, string spaces)
-        {
-            //_indent = spaces;
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new StringBuilder(input.Length * 2);
             int depth = 0;
-            int len = input.Length;
-            char[] chars = input.ToCharArray();
-            for (int i = 0; i < len; ++i)
-            {
-                char ch = chars[i];
 
-                if (ch == '\"') // found string span
+            ReadOnlySpan<char> span = input;
+            int len = span.Length;
+
+            for (int i = 0; i < len; i++)
+            {
+                char ch = span[i];
+
+                if (ch == '"')
                 {
-                    bool str = true;
-                    while (str)
+                    output.Append(ch);
+                    while (++i < len)
                     {
+                        ch = span[i];
                         output.Append(ch);
-                        ch = chars[++i];
                         if (ch == '\\')
                         {
-                            output.Append(ch);
-                            ch = chars[++i];
+                            output.Append(span[++i]);
+                            continue;
                         }
-                        else if (ch == '\"')
-                            str = false;
+                        if (ch == '"') break;
                     }
+                    continue;
                 }
 
                 switch (ch)
                 {
                     case '{':
                     case '[':
-                        output.Append(ch);
-                        output.AppendLine();
-                        AppendIndent(output, ++depth, spaces);
+                        output.Append(ch)
+                            .Append('\n');
+                        AppendSpaces(output, ++depth * spaces);
                         break;
+
                     case '}':
                     case ']':
-                        output.AppendLine();
-                        AppendIndent(output, --depth, spaces);
+                        output.Append('\n');
+                        AppendSpaces(output, --depth * spaces);
                         output.Append(ch);
                         break;
+
                     case ',':
-                        output.Append(ch);
-                        output.AppendLine();
-                        AppendIndent(output, depth, spaces);
+                        output.Append(ch)
+                            .Append('\n');
+                        AppendSpaces(output, depth * spaces);
                         break;
+
                     case ':':
                         output.Append(" : ");
                         break;
+
                     default:
                         if (!char.IsWhiteSpace(ch))
                             output.Append(ch);
@@ -72,6 +69,12 @@ namespace Json5Core
             }
 
             return output.ToString();
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void AppendSpaces(StringBuilder sb, int count)
+        {
+            sb.Append(' ', count);
         }
     }
 }

@@ -233,10 +233,10 @@ namespace Json5Core
                     continue;
 
                 myPropInfo d = CreateMyProp(p.PropertyType, p.Name);
-                d.setter = Reflection.CreateSetMethod(type, p, ShowReadOnlyProperties);
+                d.setter = CreateSetMethod(type, p, ShowReadOnlyProperties);
                 if (d.setter != null)
                     d.CanWrite = true;
-                d.getter = Reflection.CreateGetMethod(type, p);
+                d.getter = CreateGetMethod(type, p);
                 object[]? att = p.GetCustomAttributes(true);
                 foreach (object? at in att)
                 {
@@ -263,10 +263,10 @@ namespace Json5Core
                 if (f.IsLiteral == false)
                 {
                     if (f.IsInitOnly == false)
-                        d.setter = Reflection.CreateSetField(type, f);
+                        d.setter = CreateSetField(type, f);
                     if (d.setter != null)
                         d.CanWrite = true;
-                    d.getter = Reflection.CreateGetField(type, f);
+                    d.getter = CreateGetField(type, f);
                     object[]? att = f.GetCustomAttributes(true);
                     foreach (object? at in att)
                     {
@@ -737,9 +737,9 @@ namespace Json5Core
                             mName = dm.Name;
                         }
                     }
-                    if (at is Json5Core.DataMemberAttribute)
+                    if (at is DataMemberAttribute)
                     {
-                        DataMemberAttribute? dm = (Json5Core.DataMemberAttribute)at;
+                        DataMemberAttribute? dm = (DataMemberAttribute)at;
                         if (dm.Name != "")
                         {
                             mName = dm.Name;
@@ -783,9 +783,9 @@ namespace Json5Core
                             mName = dm.Name;
                         }
                     }
-                    if (at is Json5Core.DataMemberAttribute)
+                    if (at is DataMemberAttribute)
                     {
-                        DataMemberAttribute? dm = (Json5Core.DataMemberAttribute)at;
+                        DataMemberAttribute? dm = (DataMemberAttribute)at;
                         if (dm.Name != "")
                         {
                             mName = dm.Name;

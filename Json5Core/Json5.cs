@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Json5Core;
 
@@ -252,8 +253,7 @@ public static class Json5
         /// <returns></returns>
         public static string Beautify(string input)
         {
-            string? i = new string(' ', Json5.Parameters.FormatterIndentSpaces);
-            return Formatter.PrettyPrint(input, i);
+            return Formatter.PrettyPrint(input, Parameters.FormatterIndentSpaces);
         }
         
         /// <summary>
@@ -264,8 +264,7 @@ public static class Json5
         /// <returns></returns>
         public static string Beautify(string input, byte spaces)
         {
-            string i = new string(' ', spaces);
-            return Formatter.PrettyPrint(input, i);
+            return Formatter.PrettyPrint(input, spaces);
         }
         
         /// <summary>

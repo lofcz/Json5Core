@@ -413,7 +413,7 @@ public class tests
         Dictionary<string, Retclass> r = new Dictionary<string, Retclass>();
         r.Add("11", new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
         r.Add("12", new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-        string s = Json5.ToJson(r, new Json5Core.Json5Parameters { UseExtensions = false });
+        string s = Json5.ToJson(r, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<string, Retclass> o = Json5.ToObject<Dictionary<string, Retclass>>(s);
         Assert.That(o.Count, Is.EqualTo(2));
@@ -437,7 +437,7 @@ public class tests
         Dictionary<int, Retclass> r = new Dictionary<int, Retclass>();
         r.Add(11, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
         r.Add(12, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-        string s = Json5.ToJson(r, new Json5Core.Json5Parameters { UseExtensions = false });
+        string s = Json5.ToJson(r, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<int, Retclass> o = Json5.ToObject<Dictionary<int, Retclass>>(s);
         Assert.That(o.Count, Is.EqualTo(2));
@@ -461,7 +461,7 @@ public class tests
         Dictionary<Retstruct, Retclass> r = new Dictionary<Retstruct, Retclass>();
         r.Add(new Retstruct { Field1 = "111", Field2 = 1, date = DateTime.Now }, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
         r.Add(new Retstruct { Field1 = "222", Field2 = 2, date = DateTime.Now }, new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
-        string s = Json5.ToJson(r, new Json5Core.Json5Parameters { UseExtensions = false });
+        string s = Json5.ToJson(r, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         Dictionary<Retstruct, Retclass> o = Json5.ToObject<Dictionary<Retstruct, Retclass>>(s);
         Assert.That(o.Count, Is.EqualTo(2));
@@ -485,7 +485,7 @@ public class tests
         List<Retclass> r = new List<Retclass>();
         r.Add(new Retclass { Field1 = "111", Field2 = 2, date = DateTime.Now });
         r.Add(new Retclass { Field1 = "222", Field2 = 3, date = DateTime.Now });
-        string s = Json5.ToJson(r, new Json5Core.Json5Parameters { UseExtensions = false });
+        string s = Json5.ToJson(r, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(Json5.Beautify(s));
         List<Retclass> o = Json5.ToObject<List<Retclass>>(s);
         Assert.That(o.Count, Is.EqualTo(2));
@@ -536,7 +536,7 @@ public class tests
         ne.dic.Add("hello", new class1("asda", "asdas", Guid.NewGuid()));
         ne.objs = new baseclass[] { new class1("a", "1", Guid.NewGuid()), new class2("b", "2", "desc") };
 
-        string str = Json5.ToJson(ne, new Json5Core.Json5Parameters { UseExtensions = false, UsingGlobalTypes = false });
+        string str = Json5.ToJson(ne, new Json5Parameters { UseExtensions = false, UsingGlobalTypes = false });
         string strr = Json5.Beautify(str);
         Console.WriteLine(strr);
         object dic = Json5.Parse(str);
@@ -631,7 +631,7 @@ public class tests
     [Test]
     public static void DisableExtensions()
     {
-        Json5Parameters p = new Json5Core.Json5Parameters { UseExtensions = false, SerializeNullValues = false };
+        Json5Parameters p = new Json5Parameters { UseExtensions = false, SerializeNullValues = false };
         string s = Json5.ToJson(new Retclass { date = DateTime.Now, Name = "aaaaaaa" }, p);
         Console.WriteLine(Json5.Beautify(s));
         Retclass o = Json5.ToObject<Retclass>(s);
@@ -916,7 +916,7 @@ public class tests
     public static void GetDynamicMemberNamesTests()
     {
         string s = "{\"Name\":\"aaaaaa\",\"Age\":10,\"dob\":\"2000-01-01 00:00:00Z\",\"inner\":{\"prop\":30},\"arr\":[1,{\"a\":2},3,4,5,6]}";
-        dynamic d = Json5Core.Json5.ToDynamic(s);
+        dynamic d = Json5.ToDynamic(s);
         Assert.That(d.GetDynamicMemberNames().Count, Is.EqualTo(5));
         Assert.That(d.arr.Count, Is.EqualTo(6));
         Assert.That(d["Name"], Is.EqualTo("aaaaaa"));
@@ -1252,7 +1252,7 @@ public class tests
         public abstractClass(string type) // : base(type)
         {
 
-            this.myConcreteType = type;
+            myConcreteType = type;
 
         }
     }
@@ -1261,7 +1261,7 @@ public class tests
     {
         public T Value { get; set; }
         public abstractClass() { }
-        public abstractClass(T value, string type) : base(type) { this.Value = value; }
+        public abstractClass(T value, string type) : base(type) { Value = value; }
     }
     public class OneConcreteClass : abstractClass<int>
     {
@@ -2697,7 +2697,7 @@ public class tests
     {
         private int i;
         public X(int i) { this.i = i; }
-        public int I { get { return this.i; } }
+        public int I { get { return i; } }
     }
 
     [Test]
@@ -2844,7 +2844,7 @@ public class tests
         Console.WriteLine();
         Console.WriteLine(jsonstr);
 
-        Dictionary<string, List<AC>> dictList2 = Json5Core.Json5.ToObject<Dictionary<string, List<AC>>>(jsonstr);
+        Dictionary<string, List<AC>> dictList2 = Json5.ToObject<Dictionary<string, List<AC>>>(jsonstr);
 
         ClassicAssert.True(dictList2["P"].Count == 2);
         ClassicAssert.True(dictList2["P"][0].GetType() == typeof(AC));
@@ -2885,14 +2885,14 @@ public class tests
         [System.Runtime.Serialization.DataMember(Name = "prop")]
         public string MyProperty;
         //[System.Runtime.Serialization.DataMember(Name = "id")]
-        [Json5Core.DataMember(Name = "id")]
+        [DataMember(Name = "id")]
         public int docid;
     }
 
     public class TestObj
     {
 
-        [Json5Core.DataMember(Name = "D")] 
+        [DataMember(Name = "D")] 
         public int SomeData { get; set; } = -1;
     }
 
@@ -2901,12 +2901,12 @@ public class tests
     {
         string s = "{\"prop\":\"Date\",\"id\":42}";
         Console.WriteLine(s);
-        dmember o = Json5Core.Json5.ToObject<dmember>(s);
+        dmember o = Json5.ToObject<dmember>(s);
 
         Assert.That(o.docid, Is.EqualTo(42));
         Assert.That(o.MyProperty, Is.EqualTo("Date"));
 
-        string ss = Json5Core.Json5.ToJson(o, new Json5Parameters { UseExtensions = false });
+        string ss = Json5.ToJson(o, new Json5Parameters { UseExtensions = false });
         Console.WriteLine(ss);
         Assert.That(ss, Is.EqualTo(s));
 
@@ -2919,10 +2919,10 @@ public class tests
     {
         string t = "test\0test";
         Console.WriteLine(t);
-        string s = Json5Core.Json5.ToJson(t, new Json5Parameters { UseEscapedUnicode = false, UseExtensions = true });
+        string s = Json5.ToJson(t, new Json5Parameters { UseEscapedUnicode = false, UseExtensions = true });
         ClassicAssert.True(s.Contains("\\0"));
         Console.WriteLine(s);
-        string o = Json5Core.Json5.ToObject<string>(s);
+        string o = Json5.ToObject<string>(s);
         ClassicAssert.True(o.Contains("\0"));
         Console.WriteLine("" + o);
     }
@@ -3256,11 +3256,11 @@ public class tests
         testObject.Items.Add(new Item { Id = 1, Data = "Item 1" });
         testObject.Items.Add(new Item { Id = 2, Data = "Item 2" });
 
-        string jsonData = Json5Core.Json5.ToJsonPretty(testObject);
+        string jsonData = Json5.ToJsonPretty(testObject);
         Console.WriteLine(jsonData);
 
         TestObject copyObject = new TestObject();
-        Json5Core.Json5.FillObject(copyObject, jsonData);
+        Json5.FillObject(copyObject, jsonData);
     }
 
     [Test]
@@ -3475,7 +3475,7 @@ public class tests
 
         public NullTestClass()
         {
-            this.Test = new object();
+            Test = new object();
         }
     }
 
