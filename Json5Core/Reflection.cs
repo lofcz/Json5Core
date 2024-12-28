@@ -173,8 +173,7 @@ namespace Json5Core
 
         internal object CreateCustom(string v, Type type)
         {
-            Deserialize d;
-            _customDeserializer.TryGetValue(type, out d);
+            _customDeserializer.TryGetValue(type, out Deserialize d);
             return d(v);
         }
 
@@ -209,8 +208,7 @@ namespace Json5Core
 
         public Type[] GetGenericArguments(Type t)
         {
-            Type[] tt = null;
-            if (_genericTypes.TryGetValue(t, out tt))
+            if (_genericTypes.TryGetValue(t, out Type[] tt))
                 return tt;
             tt = t.GetGenericArguments();
             _genericTypes.Add(t, tt);
@@ -404,8 +402,7 @@ namespace Json5Core
                 int count = 10;
                 if (capacity > 10)
                     count = capacity;
-                CreateList c = null;
-                if (_conlistcache.TryGetValue(objtype, out c))
+                if (_conlistcache.TryGetValue(objtype, out CreateList c))
                 {
                     if (c != null) // kludge : non capacity lists
                         return c(count);
@@ -691,8 +688,7 @@ namespace Json5Core
 
         public Getters[] GetGetters(Type type, /*bool ShowReadOnlyProperties,*/ List<Type> IgnoreAttributes)
         {
-            Getters[] val = null;
-            if (_getterscache.TryGetValue(type, out val))
+            if (_getterscache.TryGetValue(type, out Getters[] val))
                 return val;
 
             BindingFlags bf = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;

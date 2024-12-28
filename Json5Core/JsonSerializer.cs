@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER)
 using System.Data;
-#endif
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -13,14 +11,14 @@ namespace Json5Core
 {
     internal sealed class JSONSerializer
     {
-        private StringBuilder _output = new StringBuilder();
+        private readonly StringBuilder _output = new StringBuilder();
         private int _before;
         private int _MAX_DEPTH = 20;
         int _current_depth;
-        private Dictionary<string, int> _globalTypes = new Dictionary<string, int>();
-        private Dictionary<object, int> _cirobj;
-        private Json5Parameters _params;
-        private bool _useEscapedUnicode;
+        private readonly Dictionary<string, int> _globalTypes = new Dictionary<string, int>();
+        private readonly Dictionary<object, int> _cirobj;
+        private readonly Json5Parameters _params;
+        private readonly bool _useEscapedUnicode;
 
         internal JSONSerializer(Json5Parameters param)
         {
@@ -34,7 +32,7 @@ namespace Json5Core
         {
             WriteValue(obj);
 
-            if (_params.UsingGlobalTypes && _globalTypes != null && _globalTypes.Count > 0)
+            if (_params.UsingGlobalTypes && _globalTypes is { Count: > 0 })
             {
                 StringBuilder? sb = new StringBuilder();
                 sb.Append("\"$types\":{");
@@ -83,7 +81,7 @@ namespace Json5Core
                 case ulong:
                     _output.Append(((IConvertible)obj).ToString(NumberFormatInfo.InvariantInfo));
                     break;
-                case decimal decimalNumber when decimalNumber == 0.0m:
+                case decimal decimalNumber and 0.0m:
                     _output.Append((decimal.GetBits(decimalNumber)[3] & -2147483648) != -2147483648 ? "0" : "-0");
                     break;
                 case decimal decimalNumber:
@@ -254,8 +252,7 @@ namespace Json5Core
 
         private void WriteCustom(object obj)
         {
-            Reflection.Serialize s;
-            Reflection.Instance._customSerializer.TryGetValue(obj.GetType(), out s);
+            Reflection.Instance._customSerializer.TryGetValue(obj.GetType(), out Reflection.Serialize s);
             WriteStringFast(s(obj));
         }
 
@@ -323,9 +320,11 @@ namespace Json5Core
         {
             if (ds == null) return null;
 
-            DatasetSchema m = new DatasetSchema();
-            m.Info = new List<string>();
-            m.Name = ds.TableName;
+            DatasetSchema m = new DatasetSchema
+            {
+                Info = [],
+                Name = ds.TableName
+            };
 
             foreach (DataColumn c in ds.Columns)
             {
@@ -342,9 +341,11 @@ namespace Json5Core
         {
             if (ds == null) return null;
 
-            DatasetSchema m = new DatasetSchema();
-            m.Info = new List<string>();
-            m.Name = ds.DataSetName;
+            DatasetSchema m = new DatasetSchema
+            {
+                Info = [],
+                Name = ds.DataSetName
+            };
 
             foreach (DataTable t in ds.Tables)
             {
@@ -360,13 +361,11 @@ namespace Json5Core
             return m;
         }
 
-        private string GetXmlSchema(DataTable dt)
+        private static string GetXmlSchema(DataTable dt)
         {
-            using (StringWriter? writer = new StringWriter())
-            {
-                dt.WriteXmlSchema(writer);
-                return dt.ToString();
-            }
+            using StringWriter writer = new StringWriter();
+            dt.WriteXmlSchema(writer);
+            return dt.ToString();
         }
 
         private void WriteDataset(DataSet ds)
@@ -432,8 +431,7 @@ namespace Json5Core
         bool _TypesWritten;
         private void WriteObject(object obj)
         {
-            int i = 0;
-            if (_cirobj.TryGetValue(obj, out i) == false)
+            if (_cirobj.TryGetValue(obj, out int i) == false)
                 _cirobj.Add(obj, _cirobj.Count + 1);
             else
             {
@@ -441,7 +439,7 @@ namespace Json5Core
                 {
                     //_circular = true;
                     _output.Append("{\"$i\":");
-                    _output.Append(i.ToString());
+                    _output.Append(i);
                     _output.Append('}');
                     return;
                 }
@@ -493,7 +491,7 @@ namespace Json5Core
                 if (_params.ShowReadOnlyProperties == false && p.ReadOnly)
                     continue;
                 object o = p.Getter(obj);
-                if (_params.SerializeNullValues == false && (o == null || o is DBNull))
+                if (_params.SerializeNullValues == false && o is null or DBNull)
                 {
                     //append = false;
                 }
@@ -547,15 +545,15 @@ namespace Json5Core
         {
             _output.Append('[');
 
-            bool pendingSeperator = false;
+            bool pendingSeparator = false;
 
             foreach (object obj in array)
             {
-                if (pendingSeperator) _output.Append(',');
+                if (pendingSeparator) _output.Append(',');
 
                 WriteValue(obj);
 
-                pendingSeperator = true;
+                pendingSeparator = true;
             }
             _output.Append(']');
         }
@@ -572,15 +570,15 @@ namespace Json5Core
 
                 _output.Append('[');
 
-                bool pendingSeperator = false;
+                bool pendingSeparator = false;
 
                 foreach (object obj in array)
                 {
-                    if (pendingSeperator) _output.Append(',');
+                    if (pendingSeparator) _output.Append(',');
 
                     WriteValue(obj);
 
-                    pendingSeperator = true;
+                    pendingSeparator = true;
                 }
                 _output.Append(']');
             }
@@ -613,17 +611,16 @@ namespace Json5Core
         {
             _output.Append('{');
             bool pendingSeparator = false;
-            foreach (KeyValuePair<string, object> entry in dic)
+            foreach ((string? k, object? value) in dic)
             {
-                if (_params.SerializeNullValues == false && (entry.Value == null))
+                if (_params.SerializeNullValues == false && (value == null))
                 {
                 }
                 else
                 {
                     if (pendingSeparator) _output.Append(',');
-                    string k = entry.Key;
 
-                    WritePair(_params.SerializeToLowerCaseNames ? k.ToLowerInvariant() : k, entry.Value);
+                    WritePair(_params.SerializeToLowerCaseNames ? k.ToLowerInvariant() : k, value);
                     pendingSeparator = true;
                 }
             }

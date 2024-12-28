@@ -4,7 +4,6 @@ using System.Data;
 using NUnit.Framework;
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Collections.Frozen;
 using System.Threading;
 using Json5Core;
 using System.Collections.Specialized;
@@ -85,15 +84,15 @@ public class tests
         if (exotic)
         {
             c.nullableGuid = Guid.NewGuid();
-#if !SILVERLIGHT
-            c.hash = new Hashtable();
-            c.hash.Add(new class1("0", "hello", Guid.NewGuid()), new class2("1", "code", "desc"));
-            c.hash.Add(new class2("0", "hello", "pppp"), new class1("1", "code", Guid.NewGuid()));
-#endif
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
-			if (dataset)
+            c.hash = new Hashtable
+            {
+                { new class1("0", "hello", Guid.NewGuid()), new class2("1", "code", "desc") },
+                { new class2("0", "hello", "pppp"), new class1("1", "code", Guid.NewGuid()) }
+            };
+
+            if (dataset)
                 c.dataset = CreateDataset();
-#endif
+
 			c.bytes = new byte[1024];
             c.stringDictionary = new Dictionary<string, baseclass>();
             c.objectDictionary = new Dictionary<baseclass, baseclass>();
@@ -180,9 +179,7 @@ public class tests
         public object obj;
         public string ppp { get { return "sdfas df "; } }
         public DateTime date { get; set; }
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
 		public DataTable ds { get; set; }
-#endif
     }
 
     public struct Retstruct
@@ -193,9 +190,7 @@ public class tests
         public int Field2;
         public string ppp { get { return "sdfas df "; } }
         public DateTime date { get; set; }
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
 		public DataTable ds { get; set; }
-#endif
     }
 
     private static long CreateLong(string s)
@@ -217,8 +212,7 @@ public class tests
 
         return neg ? -num : num;
     }
-
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
+    
 	private static DataSet CreateDataset()
     {
         DataSet ds = new DataSet();
@@ -251,7 +245,6 @@ public class tests
         }
         return ds;
     }
-#endif
 
     public class RetNestedclass
     {
@@ -288,10 +281,8 @@ public class tests
         r.Field1 = "dsasdF";
         r.Field2 = 2312;
         r.date = DateTime.Now;
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
 		r.ds = CreateDataset().Tables[0];
-#endif
-
+        
         string s = Json5.ToJson(r);
         Console.WriteLine(Json5.Beautify(s));
         object o = Json5.ToObject(s);
@@ -308,14 +299,12 @@ public class tests
         r.Field1 = "dsasdF";
         r.Field2 = 2312;
         r.date = DateTime.Now;
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
 		r.ds = CreateDataset().Tables[0];
-#endif
 
         string s = Json5.ToJsonPretty(r);
         Console.WriteLine(s);
         object o = Json5.ToObject(s);
-        ClassicAssert.NotNull(o);
+        Assert.That(o, Is.Not.Null);
         Assert.That(((Retstruct)o).Field2, Is.EqualTo(2312));
     }
 
@@ -327,15 +316,13 @@ public class tests
         r.Field1 = "dsasdF";
         r.Field2 = 2312;
         r.date = DateTime.Now;
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
 		r.ds = CreateDataset().Tables[0];
-#endif
 
         string s = Json5.ToJson(r);
         Console.WriteLine(s);
         object o = Json5.Parse(s);
 
-        ClassicAssert.IsNotNull(o);
+        Assert.That(o, Is.Not.Null);
     }
 
     [Test]
@@ -348,7 +335,7 @@ public class tests
         Console.WriteLine(s);
         object o = Json5.ToObject(s);
 
-        ClassicAssert.IsNotNull(o);
+        Assert.That(o, Is.Not.Null);
     }
 
     [Test]
@@ -362,7 +349,7 @@ public class tests
         object p = Json5.Parse(s);
         object o = Json5.ToObject(s); // long[] {1,2,3,4,5,10}
 
-        ClassicAssert.IsNotNull(o);
+        Assert.That(o, Is.Not.Null);
     }
 
     [Test]
@@ -376,7 +363,7 @@ public class tests
         object p = Json5.Parse(s);
         List<int> o = Json5.ToObject<List<int>>(s);
 
-        ClassicAssert.IsNotNull(o);
+        Assert.That(o, Is.Not.Null);
     }
 
     [Test]
@@ -695,9 +682,7 @@ public class tests
     public void UsingGlobalsBug_singlethread()
     {
         Json5Parameters p = Json5.Parameters;
-        string jsonA;
-        string jsonB;
-        GenerateJsonForAandB(out jsonA, out jsonB);
+        GenerateJsonForAandB(out string jsonA, out string jsonB);
 
         object ax = Json5.ToObject(jsonA); // A has type information in JSON-extended
         ConcurrentClassB bx = Json5.ToObject<ConcurrentClassB>(jsonB); // B needs external type info
@@ -724,9 +709,7 @@ public class tests
     public void UsingGlobalsBug_multithread()
     {
         Json5Parameters p = Json5.Parameters;
-        string jsonA;
-        string jsonB;
-        GenerateJsonForAandB(out jsonA, out jsonB);
+        GenerateJsonForAandB(out string jsonA, out string jsonB);
 
         object ax = null;
         object bx = null;
@@ -767,12 +750,19 @@ public class tests
         thread.Join(); // wait for completion of A due to Sleep in A's constructor
         Console.WriteLine(Thread.CurrentThread.ManagedThreadId + " threads joined.");
 
-        ClassicAssert.IsNull(exception, exception == null ? "" : exception.Message + " " + exception.StackTrace);
-
-        ClassicAssert.IsNotNull(ax);
-        ClassicAssert.IsInstanceOf<ConcurrentClassA>(ax);
-        ClassicAssert.IsNotNull(bx);
-        ClassicAssert.IsInstanceOf<ConcurrentClassB>(bx);
+        Assert.Multiple(() =>
+        {
+            Assert.That(exception, Is.Null, exception == null ? "" : exception.Message + " " + exception.StackTrace);
+            Assert.That(ax, Is.Not.Null);
+        });
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(ax, Is.InstanceOf<ConcurrentClassA>());
+            Assert.That(bx, Is.Not.Null);
+        });
+        
+        Assert.That(bx, Is.InstanceOf<ConcurrentClassB>());
         Json5.Parameters = p;
     }
 
@@ -837,8 +827,7 @@ public class tests
         object o = Json5.ToObject(s);
     }
 
-
-#if !SILVERLIGHT
+    
     [Test]
     public static void SingleCharNumber()
     {
@@ -847,10 +836,7 @@ public class tests
         object o = Json5.ToObject(s);
         ClassicAssert.That(zero, Is.EqualTo(o));
     }
-
-#endif
-#if !SILVERLIGHT && (NETFRAMEWORK || NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER || NET4)
-
+    
     [Test]
     public static void Datasets()
     {
@@ -878,9 +864,6 @@ public class tests
         Assert.That(oo.GetType(), Is.EqualTo(typeof(DataTable)));
         Assert.That(oo.Rows.Count, Is.EqualTo(100));
     }
-
-#endif
-#if !SILVERLIGHT
 
 	[Test]
     public static void DynamicTest()
@@ -921,7 +904,6 @@ public class tests
         Assert.That(d.arr.Count, Is.EqualTo(6));
         Assert.That(d["Name"], Is.EqualTo("aaaaaa"));
     }
-#endif
 
 	[Test]
     public static void CommaTests()
@@ -1450,8 +1432,7 @@ public class tests
     {
         try
         {
-            CreateObj c = null;
-            if (_constrcache.TryGetValue(objtype, out c))
+            if (_constrcache.TryGetValue(objtype, out CreateObj c))
             {
                 return c();
             }
@@ -1490,8 +1471,7 @@ public class tests
     private static Json5SafeDictionary<Type, Func<object>> lamdic = new Json5SafeDictionary<Type, Func<object>>();
     static object lambdaCreateInstance(Type type)
     {
-        Func<object> o = null;
-        if (lamdic.TryGetValue(type, out o))
+        if (lamdic.TryGetValue(type, out Func<object> o))
             return o();
         o = Expression.Lambda<Func<object>>(
                 Expression.Convert(Expression.New(type), typeof(object)))
