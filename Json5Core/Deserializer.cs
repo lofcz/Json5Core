@@ -44,25 +44,9 @@ internal class Deserializer
 
         return (T?)o;
     }
-
-    public object ToObject(string json)
+    
+    private object? ConvertIntermediateObject(object? o, Type? type)
     {
-        return ToObject(json, null);
-    }
-
-    public object ToObject(string json, Type? type) => ToObject(json, type, null);
-
-    public object ToObject(string json, Type? type, IList<string> warnings)
-    {
-        //_params.FixValues();
-        Type? t = null;
-        if (type != null && type.IsGenericType())
-            t = Reflection.Instance.GetGenericTypeDefinition(type);
-        _usingglobals = _params.UsingGlobalTypes;
-        if (typeof(IDictionary).IsAssignableFrom(t) || typeof(List<>).IsAssignableFrom(t))
-            _usingglobals = false;
-
-        object? o = new JsonParser(json, true, warnings).Decode(type);
         if (o == null)
             return null;
 
@@ -73,6 +57,10 @@ internal class Deserializer
             if (type == typeof(DataTable))
                 return CreateDataTable(o as Dictionary<string, object>, null);
         }
+        
+        Type? t = null;
+        if (type != null && type.IsGenericType())
+            t = Reflection.Instance.GetGenericTypeDefinition(type);
 
         switch (o)
         {
@@ -92,9 +80,11 @@ internal class Deserializer
                     return RootHashTable(list);
                 if (t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(HashSet<>) || t.GetGenericTypeDefinition() == typeof(ISet<>)))
                     return RootSet(list, type);
+                // This is where our improved RootCollection will be called
+                if (t.IsGenericType && IsCollectionType(type))
+                    return RootCollection(list, type);
                 break;
             }
-            //if (type == null)
             case List<object> { Count: > 0 } list when list[0].GetType() == typeof(Dictionary<string, object>):
             {
                 Dictionary<string, object> globals = new Dictionary<string, object>();
@@ -115,6 +105,105 @@ internal class Deserializer
         }
 
         return o;
+    }
+
+    public object? ToObject(string json)
+    {
+        return ToObject(json, null);
+    }
+
+    public object? ToObject(string json, Type? type) => ToObject(json, type, null);
+
+    public object? ToObject(string json, Type? type, IList<string>? warnings)
+    {
+        Type? t = null;
+        if (type != null && type.IsGenericType())
+            t = Reflection.Instance.GetGenericTypeDefinition(type);
+        _usingglobals = _params.UsingGlobalTypes;
+        if (typeof(IDictionary).IsAssignableFrom(t) || typeof(List<>).IsAssignableFrom(t))
+            _usingglobals = false;
+
+        object? o = new JsonParser(json, true, warnings).Decode(type);
+    
+        // Use the new helper method here
+        return ConvertIntermediateObject(o, type);
+    }
+    
+    private static bool IsCollectionType(Type type)
+    {
+        if (!type.IsGenericType) return false;
+
+        return (
+            from interfaceType 
+            in type.GetInterfaces() 
+            where interfaceType.IsGenericType 
+            select interfaceType.GetGenericTypeDefinition()).Any(x => 
+            x == typeof(ICollection<>) || 
+            x == typeof(IEnumerable<>) || 
+            x == typeof(IReadOnlyCollection<>)
+        );
+    }
+
+    private object? RootCollection(List<object> o, Type type)
+    {
+        object collection = Reflection.Instance.FastCreateInstance(type);
+        
+        if (collection is IList list)
+        {
+            Type et = typeof(object);
+            
+            foreach (object item in o)
+            {
+                object? val = ConvertIntermediateObject(item, et);
+                list.Add(val);
+            }
+            
+            return list;
+        }
+
+        Type[] genericArgs = type.GetGenericArguments();
+        
+        if (genericArgs.Length is 0)
+        {
+            return null; 
+        }
+        
+        Type elementType = genericArgs[0];
+        Type collectionInterface = typeof(ICollection<>).MakeGenericType(elementType);
+        
+        if (collectionInterface.IsAssignableFrom(type))
+        {
+            MethodInfo? ad = collectionInterface.GetMethod("Add");
+
+            if (ad is not null)
+            {
+                foreach (object item in o)
+                {
+                    object? val = ConvertIntermediateObject(item, elementType);
+                    ad.Invoke(collection, [val]);
+                }   
+            }
+            
+            return collection;
+        }
+
+        MethodInfo? addMethod =
+            type.GetMethod("Add", [elementType]) ??
+            type.GetMethod("Push", [elementType]) ??
+            type.GetMethod("Enqueue", [elementType]);
+
+        if (addMethod != null)
+        {
+            foreach (object item in o)
+            {
+                object? val = ConvertIntermediateObject(item, elementType);
+                addMethod.Invoke(collection, [val]);
+            }
+            
+            return collection;
+        }
+
+        return null;
     }
 
     private object RootSet(List<object> o, Type type)

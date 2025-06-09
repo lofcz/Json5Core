@@ -46,11 +46,11 @@ namespace Json5Core
         HashSet<string> _lookup = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
         readonly HashSet<Type> _seen = [];
         bool _parseJsonType;
-        IList<string> warnings;
+        IList<string>? warnings;
 
-        internal JsonParser(string json, bool AllowNonQuotedKeys, IList<string> warnings)
+        internal JsonParser(string json, bool allowNonQuotedKeys, IList<string>? warnings)
         {
-            allownonquotedkey = AllowNonQuotedKeys;
+            allownonquotedkey = allowNonQuotedKeys;
             //this.AllowJson5String = AllowJson5String;
             this.json = json.ToCharArray();
             _len = json.Length;

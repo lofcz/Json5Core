@@ -265,6 +265,28 @@ public class tests
             myProperty = 1
         }, Json5Formatting.Intended);
     }
+    
+    [Test]
+    public static void DeepCloneConcurrentQueue()
+    {
+        ConcurrentQueue<int> cq = new ConcurrentQueue<int>();
+        cq.Enqueue(1);
+        cq.Enqueue(2);
+        cq.Enqueue(31);
+
+        ConcurrentQueue<int> cloned = Json5.DeepCopy(cq);
+
+        Assert.That(cloned.Count, Is.EqualTo(3));
+
+        cloned.TryDequeue(out int i1);
+        Assert.That(i1, Is.EqualTo(1));
+
+        cloned.TryDequeue(out int i2);
+        Assert.That(i2, Is.EqualTo(2));
+        
+        cloned.TryDequeue(out int i3);
+        Assert.That(i3, Is.EqualTo(31));
+    }
 
     [Test]
     public static void objectarray()
