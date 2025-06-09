@@ -107,8 +107,8 @@ namespace Json5Core
 
         private unsafe bool CheckForTypeInJson(char* p)
         {
-            ReadOnlySpan<char> target = typesStr;
-            
+            ReadOnlySpan<char> target = typesStr.AsSpan();
+
             int len = Math.Min(_len, 1000);
             for (int i = 0; i <= len - target.Length; i++)
             {

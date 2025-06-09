@@ -10,8 +10,9 @@ namespace Json5Core
         {
             StringBuilder output = new StringBuilder(input.Length * 2);
             int depth = 0;
+            
+            ReadOnlySpan<char> span = input.AsSpan();
 
-            ReadOnlySpan<char> span = input;
             int len = span.Length;
 
             for (int i = 0; i < len; i++)
