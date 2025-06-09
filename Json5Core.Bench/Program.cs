@@ -1,4 +1,6 @@
-﻿namespace Json5Core.Bench;
+﻿using fastJSON5;
+
+namespace Json5Core.Bench;
 
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
@@ -25,6 +27,6 @@ public class BenchmarkDemo
     public void Old()
     {
         string s = "[{\"foo\":\"'[0]\\\"{}\\u1234\\r\\n\",\"bar\":12222,\"coo\":\"some' string\",\"dir\":\"C:\\\\folder\\\\\"}]";
-        Json5.Beautify(s);
+        JSON5.Beautify(s);
     }
 }
