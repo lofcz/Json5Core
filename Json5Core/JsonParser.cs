@@ -29,36 +29,11 @@ namespace Json5Core
             Number,
             True,
             False,
-            Null//, 
-            //Key
-            ,
+            Null,
             PosInfinity,
             NegInfinity,
             NaN
         }
-
-        // slower than StringBuilder
-        //class myStringBuilder
-        //{
-
-        //    int _index = 0;
-        //    char[] _str = new char[32*1024];
-
-        //    public void Append(char c)
-        //    {
-        //        _str[_index++] = c;
-        //    }
-
-        //    public void Clear()
-        //    {
-        //        _index = 0;
-        //    }
-
-        //    public override string ToString()
-        //    {
-        //        return new string(_str, 0, _index - 1);
-        //    }
-        //}
 
         readonly char[] json;
         readonly StringBuilder s = new StringBuilder(); // used for inner string parsing " \"\r\n\u1234\'\t " 
@@ -67,9 +42,9 @@ namespace Json5Core
         int index;
         bool allownonquotedkey;
         //bool AllowJson5String = false;
-        int _len;
+        readonly int _len;
         HashSet<string> _lookup = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-        HashSet<Type> _seen = [];
+        readonly HashSet<Type> _seen = [];
         bool _parseJsonType;
         IList<string> warnings;
 
@@ -403,10 +378,8 @@ namespace Json5Core
         {
             ConsumeToken();
 
-            int len = _len;
-
             // escaped string
-            while (index < len)
+            while (index < _len)
             {
                 char c = p[index++];
                 
@@ -718,7 +691,6 @@ namespace Json5Core
                                 if (c == '\n')
                                 {
                                     index++;
-                                    c = p[index];
                                 }
                             }
                             else if (c != '\n' && c != '\u2028' && c != '\u2029')
@@ -729,11 +701,6 @@ namespace Json5Core
             }
 
             throw new Exception("Did not reach end of string");
-        }
-
-        private unsafe string ParseJson5String(char* p)
-        {
-            throw new NotImplementedException();
         }
 
         private uint ParseSingleChar(char c1, uint multipliyer, int additionalIndex)
@@ -845,9 +812,9 @@ namespace Json5Core
                     run = false;
 
             } while (run);
+            
             if (index == _len && (!hasDigits || (!hasDigits2 && dob))) throw new Exception("Unfinished number at end of input");
-            if (!hasDigits) throw new Exception($"Unexpected character '{ p[index] }' at index { index }");
-            if (!hasDigits2 && dob) throw new Exception($"Unexpected character '{ p[index] }' at index { index }");
+            if (!hasDigits || !hasDigits2 && dob) throw new Exception($"Unexpected character '{ p[index] }' at index { index }");
 
             if (skip)
                 return 0;
@@ -1087,16 +1054,14 @@ namespace Json5Core
 
         private unsafe Token NextTokenCore(char* p)
         {
-            int len = _len;
-
-            if (index == len)
+            if (index == _len)
             {
                 throw new Exception("Reached end of string unexpectedly");
             }
 
             SkipWhitespace(p);
 
-            if (index == len)
+            if (index == _len)
             {
                 throw new Exception("Reached end of string unexpectedly");
             }
@@ -1127,7 +1092,7 @@ namespace Json5Core
                     return Token.String;
 
                 case '-':
-                    if (len - index >= 8 &&
+                    if (_len - index >= 8 &&
                         p[index + 0] == 'I' &&
                         p[index + 1] == 'n' &&
                         p[index + 2] == 'f' &&
@@ -1141,7 +1106,7 @@ namespace Json5Core
                         return Token.NegInfinity;
                     }
 
-                    if (len - index >= 3 &&
+                    if (_len - index >= 3 &&
                         p[index + 0] == 'N' &&
                         p[index + 1] == 'a' &&
                         p[index + 2] == 'N')
@@ -1151,7 +1116,7 @@ namespace Json5Core
                     }
                     return Token.Number;
                 case '+':
-                    if (len - index >= 8 &&
+                    if (_len - index >= 8 &&
                         p[index + 0] == 'I' &&
                         p[index + 1] == 'n' &&
                         p[index + 2] == 'f' &&
@@ -1165,7 +1130,7 @@ namespace Json5Core
                         return Token.PosInfinity;
                     }
 
-                    if (len - index >= 3 &&
+                    if (_len - index >= 3 &&
                         p[index + 0] == 'N' &&
                         p[index + 1] == 'a' &&
                         p[index + 2] == 'N')
@@ -1191,7 +1156,7 @@ namespace Json5Core
                 case ':':
                     return Token.Colon;
                 case 'I':
-                    if (len - index >= 7 &&
+                    if (_len - index >= 7 &&
                         p[index + 0] == 'n' &&
                         p[index + 1] == 'f' &&
                         p[index + 2] == 'i' &&
@@ -1206,7 +1171,7 @@ namespace Json5Core
                     break;
 
                 case 'f':
-                    if (len - index >= 4 &&
+                    if (_len - index >= 4 &&
                         p[index + 0] == 'a' &&
                         p[index + 1] == 'l' &&
                         p[index + 2] == 's' &&
@@ -1218,7 +1183,7 @@ namespace Json5Core
                     break;
 
                 case 't':
-                    if (len - index >= 3 &&
+                    if (_len - index >= 3 &&
                         p[index + 0] == 'r' &&
                         p[index + 1] == 'u' &&
                         p[index + 2] == 'e')
@@ -1229,7 +1194,7 @@ namespace Json5Core
                     break;
 
                 case 'n':
-                    if (len - index >= 3 &&
+                    if (_len - index >= 3 &&
                         p[index + 0] == 'u' &&
                         p[index + 1] == 'l' &&
                         p[index + 2] == 'l')
@@ -1240,7 +1205,7 @@ namespace Json5Core
                     break;
 
                 case 'N':
-                    if (len - index >= 2 &&
+                    if (_len - index >= 2 &&
                     p[index] == 'a' &&
                     (p[index + 1] == 'N'))
                     {

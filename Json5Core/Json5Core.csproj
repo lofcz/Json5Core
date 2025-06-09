@@ -2,7 +2,7 @@
     <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
     
     <PropertyGroup>
-        <TargetFrameworks>net8.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Hamish Arblaster, M. Gholam, Matěj Štágl</Authors>
@@ -32,6 +32,14 @@
     </PropertyGroup>
     <ItemGroup>
         <None Include="icon.jpeg" Pack="true" PackagePath=""/>
+    </ItemGroup>
+    <PropertyGroup>
+        <DefineConstants Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">$(DefineConstants);MODERN</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup Condition="$(TargetFramework.StartsWith('net4')) OR $(TargetFramework.StartsWith('netstandard'))">
+        <PackageReference Include="System.Text.Json" Version="9.0.5" />
+        <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.7.0" />
+        <PackageReference Include="IndexRange" Version="1.0.3" />
     </ItemGroup>
     <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

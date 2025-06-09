@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace Json5Core
 {
@@ -46,7 +47,11 @@ namespace Json5Core
 
 		public static object TryGetUninitializedObject(Type t)
 		{
+#if MODERN
 			return RuntimeHelpers.GetUninitializedObject(t);
+#else 
+			return FormatterServices.GetUninitializedObject(t);
+#endif
 		}
 
 		public static byte[] TryGetMethodBodyIlByteArray(MethodInfo mi)

@@ -597,22 +597,13 @@ internal class Deserializer
 
             foreach (object ob in data)
             {
-                object item;
-                switch (ob)
+                object item = ob switch
                 {
-                    case IDictionary:
-                        item = ParseDictionary((Dictionary<string, object>)ob, globalTypes, it, null);
-                        break;
-                    case List<object> list when bt.IsGenericType():
-                        item = list;
-                        break;
-                    case List<object> list:
-                        item = list.ToArray();
-                        break;
-                    default:
-                        item = ChangeType(ob, it);
-                        break;
-                }
+                    IDictionary => ParseDictionary((Dictionary<string, object>)ob, globalTypes, it, null),
+                    List<object> list when bt.IsGenericType() => list,
+                    List<object> list => list.ToArray(),
+                    _ => ChangeType(ob, it)
+                };
 
                 addMethod?.Invoke(col, [item]);
             }
@@ -670,23 +661,24 @@ internal class Deserializer
             generictype = ga[0];
         arraytype = t2.GetElementType();
 
-        foreach (KeyValuePair<string, object> values in reader)
+        foreach (KeyValuePair<string, object> kvp in reader)
         {
-            string? key = values.Key;
+            string key = kvp.Key;
+            object o = kvp.Value;
             object val;
 
-            if (values.Value is Dictionary<string, object> value)
+            if (o is Dictionary<string, object> value)
                 val = ParseDictionary(value, globalTypes, t2, null);
 
             else if (types != null && t2.IsArray)
             {
-                val = values.Value is Array ? values.Value : CreateArray((List<object>)values.Value, t2, arraytype, globalTypes);
+                val = o is Array ? o : CreateArray((List<object>)o, t2, arraytype, globalTypes);
             }
-            else if (values.Value is IList)
-                val = CreateGenericList((List<object>)values.Value, t2, generictype, globalTypes);
+            else if (o is IList)
+                val = CreateGenericList((List<object>)o, t2, generictype, globalTypes);
 
             else
-                val = ChangeType(values.Value, t2);
+                val = ChangeType(o, t2);
 
             col.Add(key, val);
         }

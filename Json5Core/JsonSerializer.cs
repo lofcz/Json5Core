@@ -611,8 +611,12 @@ namespace Json5Core
         {
             _output.Append('{');
             bool pendingSeparator = false;
-            foreach ((string? k, object? value) in dic)
+            
+            foreach (KeyValuePair<string, object> kvp in dic)
             {
+                string k = kvp.Key;
+                object? value = kvp.Value;
+                
                 if (_params.SerializeNullValues == false && (value == null))
                 {
                 }

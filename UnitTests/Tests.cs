@@ -4094,7 +4094,7 @@ there
 
             Assert.That(
 #if NETFRAMEWORK || NET4 || NETCOREAPP && !NETCOREAPP3_0_OR_GREATER
-                "9.0144042682896313E+28"
+                "9.014404268289631E+28"
 #else
                 Json5.ToJson(Json5.Parse("+0x0123456789abcdefABCDEF0000"))
 #endif

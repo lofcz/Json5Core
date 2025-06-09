@@ -8,22 +8,27 @@
     <DefineConstants>$(DefineConstants);CORE_TEST</DefineConstants>
     <NoWarn>$(NoWarn);CS8981</NoWarn>
     <LangVersion>preview</LangVersion>
-    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <TargetFrameworks>net8.0;net462</TargetFrameworks>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NUnit" Version="4.3.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
-    <PackageReference Include="NUnit.Analyzers" Version="4.5.0">
+    <PackageReference Include="Chasm.Compatibility.HashCode" Version="2.1.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="NUnit" Version="4.3.2" />
+    <PackageReference Include="NUnit.Analyzers" Version="4.8.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="NUnit.Extension.NUnitV2Driver" Version="3.9.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="5.0.0-beta.5" />
+    <PackageReference Include="NUnit3TestAdapter" Version="5.0.0" />
     <Reference Include="Microsoft.CSharp.dll" Condition=" '$(TargetFramework)' == 'net47' " />
   </ItemGroup>
-
+  <PropertyGroup>
+    <DefineConstants Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">$(DefineConstants);MODERN</DefineConstants>
+  </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Json5Core\Json5Core.csproj" />
   </ItemGroup>
