@@ -7,38 +7,32 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  test-modern:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
-    
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    
     - name: Restore dependencies
       run: dotnet restore
-    
     - name: Build
       run: dotnet build --no-restore
-    
-    - name: Test
-      run: dotnet test --no-build --verbosity normal --logger:"console;verbosity=detailed" --logger:"trx;LogFileName=test-results.trx"
-    
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
+    - name: Test .NET 8.0
+      run: dotnet test --no-build --verbosity normal --framework net8.0 --logger:"trx;LogFileName=test-results-net8.trx"
+
+  test-framework:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        name: test-results
-        path: '**/TestResults/*.trx'
-      if: always()
-    
-    - name: Test Report
-      uses: dorny/test-reporter@v1
-      if: always()
-      with:
-        name: .NET Tests
-        path: '**/TestResults/*.trx'
-        reporter: dotnet-trx
-        fail-on-error: true
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test .NET Framework
+      run: dotnet test --no-build --verbosity normal --framework net462 --logger:"trx;LogFileName=test-results-net462.trx"
